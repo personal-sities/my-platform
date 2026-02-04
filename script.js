@@ -1,3 +1,10 @@
+// AUTH INIT
+if (!localStorage.getItem("authData")) {
+  localStorage.setItem("authData", JSON.stringify({
+    login: "admin",
+    password: "1234"
+  }));
+}
 let employees = JSON.parse(localStorage.getItem("employees")) || [];
 
 /* NAV */
@@ -123,3 +130,4 @@ function exportCSV(){
 
 loadEmpSelect();
 renderAsosiy();
+
