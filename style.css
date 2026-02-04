@@ -94,3 +94,91 @@
   text-align: center;
   font-size: 13px;
 }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", sans-serif;
+  background: #f4f6fb;
+  animation: fadeIn 0.6s ease;
+}
+
+/* PAGE ANIMATION */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* TOP BAR */
+.topbar {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: white;
+  padding: 20px;
+  border-radius: 0 0 20px 20px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.15);
+  animation: slideDown .7s ease;
+}
+
+@keyframes slideDown {
+  from { transform: translateY(-60px); opacity: 0; }
+  to   { transform: translateY(0); opacity: 1; }
+}
+
+.topbar h1 {
+  margin: 0 0 15px;
+}
+
+/* MENU */
+.menu {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.menu button {
+  background: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 12px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all .25s ease;
+}
+
+.menu button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0,0,0,.15);
+}
+
+.menu .logout {
+  background: #ef4444;
+  color: white;
+}
+
+/* CONTENT */
+#asosiy, #sozlash {
+  margin: 20px;
+  animation: fadeIn .4s ease;
+}
+
+/* CARD */
+.card {
+  background: white;
+  padding: 15px;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.1);
+  margin-bottom: 15px;
+  animation: fadeIn .4s ease;
+}
+
+/* TASK */
+.task {
+  padding: 8px;
+  margin: 6px 0;
+  border-radius: 8px;
+}
+
+.task.green { background: #dcfce7; }
+.task.yellow { background: #fef9c3; }
+.task.red { background: #fee2e2; }
+.task.done { background: #e5e7eb; text-decoration: line-through; }
+
