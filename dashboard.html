@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<header>
+    <h2>🚀 My Platform</h2>
+    <div>
+        <button onclick="toggleDark()">🌙</button>
+        <button onclick="logout()">Chiqish</button>
+    </div>
+</header>
+
+<div class="layout">
+    <aside>
+        <a href="#">🏠 Home</a>
+        <a href="#">📊 Dashboard</a>
+        <a href="#">👤 Profile</a>
+        <a href="#">⚙ Settings</a>
+    </aside>
+
+    <main>
+        <h1>Xush kelibsiz 👋</h1>
+
+        <div class="cards">
+            <div class="card">👥 Users: 120</div>
+            <div class="card">💬 Messages: 8</div>
+            <div class="card">📈 Sales: 45</div>
+        </div>
+
+        <canvas id="myChart"></canvas>
+    </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
