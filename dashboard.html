@@ -7,51 +7,57 @@
 </head>
 <body>
 
-<header>
-  <h2>📋 Vazifalar Platformasi</h2>
-  <button onclick="logout()">Chiqish</button>
-</header>
+<body>
 
-<div class="layout">
-  <aside>
-    <a onclick="showPage('asosiy')">📊 Asosiy</a>
-    <a onclick="showPage('sozlash')">⚙ Sozlash</a>
-    <a onclick="exportCSV()">⬇ Excel</a>
-  </aside>
+<div class="topbar">
+  <h1>📋 Vazifalar Platformasi</h1>
+
+  <div class="menu">
+    <button onclick="showPage('asosiy')">🏠 Asosiy</button>
+    <button onclick="showPage('sozlash')">⚙️ Sozlash</button>
+    <button onclick="exportCSV()">📊 Excel</button>
+    <button class="logout" onclick="logout()">🚪 Chiqish</button>
+  </div>
+</div>
+
+<main>
+
 
   <main>
 
-    <!-- ASOSIY -->
-    <section id="asosiy">
-      <h3>Hodimlar va vazifalar</h3>
+  <!-- ASOSIY -->
+  <section id="asosiy">
+    <h3>Hodimlar va vazifalar</h3>
 
-      <label>Sana oralig‘i:</label>
-      <input type="date" id="fromDate">
-      <input type="date" id="toDate">
-      <button onclick="renderAsosiy()">Filtrlash</button>
+    <label>Sana oralig‘i:</label>
+    <input type="date" id="fromDate">
+    <input type="date" id="toDate">
+    <button onclick="renderAsosiy()">Filtrlash</button>
 
-      <div id="asosiyContent"></div>
-    </section>
+    <div id="asosiyContent"></div>
+  </section>
 
-    <!-- SOZLASH -->
-    <section id="sozlash" style="display:none">
-      <h3>Sozlash</h3>
+  <!-- SOZLASH -->
+  <section id="sozlash" style="display:none">
+    <h3>Sozlash</h3>
 
-      <h4>Hodim qo‘shish</h4>
-      <input id="empName" placeholder="Ism Familiya">
-      <input id="empRole" placeholder="Lavozim">
-      <button onclick="addEmployee()">Qo‘shish</button>
+    <h4>Hodim qo‘shish</h4>
+    <input id="empName" placeholder="Ism Familiya">
+    <input id="empRole" placeholder="Lavozim">
+    <button onclick="addEmployee()">Qo‘shish</button>
 
-      <h4>Vazifa berish</h4>
-      <select id="taskEmp"></select>
-      <input id="taskName" placeholder="Vazifa nomi">
-      <input type="date" id="taskDeadline">
-      <button onclick="addTask()">Vazifa berish</button>
-    </section>
+    <h4>Vazifa berish</h4>
+    <select id="taskEmp"></select>
+    <input id="taskName" placeholder="Vazifa nomi">
+    <input type="date" id="taskDeadline">
+    <button onclick="addTask()">Vazifa berish</button>
+  </section>
 
-  </main>
+</main>
+
 </div>
 
 <script src="script.js"></script>
 </body>
 </html>
+
