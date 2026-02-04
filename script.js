@@ -1,12 +1,29 @@
-function getAuth() {
-  return JSON.parse(localStorage.getItem("authData"));
+// ===== AUTH INIT (MAJBURIY) =====
+if (!localStorage.getItem("authData")) {
+  localStorage.setItem(
+    "authData",
+    JSON.stringify({
+      login: "admin",
+      password: "1234"
+    })
+  );
 }
 
-/* LOGIN */
+function getAuth() {
+  let auth = localStorage.getItem("authData");
+  return auth ? JSON.parse(auth) : null;
+}
+
+
 function login() {
   let l = document.getElementById("login").value;
   let p = document.getElementById("password").value;
   let auth = getAuth();
+
+  if (!auth) {
+    alert("❌ Auth ma'lumot topilmadi");
+    return;
+  }
 
   if (l === auth.login && p === auth.password) {
     localStorage.setItem("auth", "true");
@@ -15,6 +32,7 @@ function login() {
     error.innerText = "❌ Login yoki parol xato";
   }
 }
+
 
 /* LOGIN O‘ZGARTIRISH (ESKI PAROL ORQALI) */
 function changeLogin() {
@@ -179,5 +197,6 @@ function exportCSV(){
 
 loadEmpSelect();
 renderAsosiy();
+
 
 
