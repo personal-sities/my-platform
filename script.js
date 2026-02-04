@@ -1,10 +1,59 @@
-// AUTH INIT
-if (!localStorage.getItem("authData")) {
-  localStorage.setItem("authData", JSON.stringify({
-    login: "admin",
-    password: "1234"
-  }));
+function getAuth() {
+  return JSON.parse(localStorage.getItem("authData"));
 }
+
+/* LOGIN */
+function login() {
+  let l = document.getElementById("login").value;
+  let p = document.getElementById("password").value;
+  let auth = getAuth();
+
+  if (l === auth.login && p === auth.password) {
+    localStorage.setItem("auth", "true");
+    location.href = "dashboard.html";
+  } else {
+    error.innerText = "❌ Login yoki parol xato";
+  }
+}
+
+/* LOGIN O‘ZGARTIRISH (ESKI PAROL ORQALI) */
+function changeLogin() {
+  let oldPass = oldPassForLogin.value;
+  let newLogin = document.getElementById("newLogin").value;
+  let auth = getAuth();
+
+  if (oldPass !== auth.password) {
+    alert("❌ Eski parol noto‘g‘ri");
+    return;
+  }
+
+  auth.login = newLogin;
+  localStorage.setItem("authData", JSON.stringify(auth));
+  alert("✅ Login o‘zgartirildi");
+}
+
+/* PAROL O‘ZGARTIRISH (LOGIN ORQALI) */
+function changePassword() {
+  let login = loginForPass.value;
+  let newPass = newPassword.value;
+  let auth = getAuth();
+
+  if (login !== auth.login) {
+    alert("❌ Login noto‘g‘ri");
+    return;
+  }
+
+  auth.password = newPass;
+  localStorage.setItem("authData", JSON.stringify(auth));
+  alert("✅ Parol o‘zgartirildi");
+}
+
+/* LOGOUT */
+function logout() {
+  localStorage.removeItem("auth");
+  location.href = "index.html";
+}
+
 let employees = JSON.parse(localStorage.getItem("employees")) || [];
 
 /* NAV */
@@ -130,4 +179,5 @@ function exportCSV(){
 
 loadEmpSelect();
 renderAsosiy();
+
 
