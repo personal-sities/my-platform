@@ -1,40 +1,24 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8">
-<title>Login</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Student Call | Login</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body class="auth-body">
+<body class="center">
 
-<div class="auth-card">
-  <h2>🔐 Tizimga kirish</h2>
-  <p class="subtitle">Platformaga kirish uchun ma’lumotlarni kiriting</p>
+  <div class="login-box">
+    <h1>STUDENT CALL</h1>
+    <p>Platformadan foydalanish uchun login va parolni kiriting</p>
 
-  <div class="group">
     <input id="login" placeholder="Login">
     <input id="password" type="password" placeholder="Parol">
+
     <button onclick="login()">Kirish</button>
-    <p id="error" class="error"></p>
+
+    <a href="reset.html">Login yoki parolni unutdingizmi?</a>
   </div>
 
-  <div class="divider">⚙ Sozlamalar</div>
-
-  <div class="group">
-    <h4>Login o‘zgartirish</h4>
-    <input id="oldPassForLogin" type="password" placeholder="Eski parol">
-    <input id="newLogin" placeholder="Yangi login">
-    <button class="secondary" onclick="changeLogin()">Loginni o‘zgartirish</button>
-  </div>
-
-  <div class="group">
-    <h4>Parol o‘zgartirish</h4>
-    <input id="loginForPass" placeholder="Login">
-    <input id="newPassword" type="password" placeholder="Yangi parol">
-    <button class="secondary" onclick="changePassword()">Parolni o‘zgartirish</button>
-  </div>
-</div>
-
-<script src="script.js"></script>
+<script src="js/auth.js"></script>
 </body>
 </html>
