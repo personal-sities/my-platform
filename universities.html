@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+  <meta charset="UTF-8">
+  <title>Universitetlar monitoringi</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<header>Universitetlar monitoringi</header>
+
+<div class="container">
+  <input id="search" placeholder="Universitet nomi..." onkeyup="filterUniver()">
+
+  <button onclick="addUniver()">Univer qo‘shish +</button>
+  <button onclick="exportExcel(universities,'universitetlar.xlsx')">Excelga chiqarish</button>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Univer nomi</th>
+        <th>Tizimlashtirish</th>
+        <th>Koment</th>
+      </tr>
+    </thead>
+    <tbody id="univerTable"></tbody>
+  </table>
+
+  <a href="dashboard.html">⬅ Orqaga</a>
+</div>
+
+<script src="libs/xlsx.full.min.js"></script>
+<script src="js/excel.js"></script>
+<script src="js/universities.js"></script>
+</body>
+</html>
