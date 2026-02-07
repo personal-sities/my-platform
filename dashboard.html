@@ -1,63 +1,23 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8">
-<title>Asosiy</title>
-<link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <title>Dashboard</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-<body>
+<header>Hodimlar va universitetlar monitoringi</header>
 
-<div class="topbar">
-  <h1>📋 Vazifalar Platformasi</h1>
+<div class="container center">
+  <button class="big-btn" onclick="go('staff.html')">Hodimlar nazorati</button>
+  <button class="big-btn" onclick="go('universities.html')">Universitetlar monitoringi</button>
 
-  <div class="menu">
-    <button onclick="showPage('asosiy')">🏠 Asosiy</button>
-    <button onclick="showPage('sozlash')">⚙️ Sozlash</button>
-    <button onclick="exportCSV()">📊 Excel</button>
-    <button class="logout" onclick="logout()">🚪 Chiqish</button>
-  </div>
+  <a class="exit" href="index.html">Chiqish</a>
 </div>
 
-<main>
-
-
-  <main>
-
-  <!-- ASOSIY -->
-  <section id="asosiy">
-    <h3>Hodimlar va vazifalar</h3>
-
-    <label>Sana oralig‘i:</label>
-    <input type="date" id="fromDate">
-    <input type="date" id="toDate">
-    <button onclick="renderAsosiy()">Filtrlash</button>
-
-    <div id="asosiyContent"></div>
-  </section>
-
-  <!-- SOZLASH -->
-  <section id="sozlash" style="display:none">
-    <h3>Sozlash</h3>
-
-    <h4>Hodim qo‘shish</h4>
-    <input id="empName" placeholder="Ism Familiya">
-    <input id="empRole" placeholder="Lavozim">
-    <button onclick="addEmployee()">Qo‘shish</button>
-
-    <h4>Vazifa berish</h4>
-    <select id="taskEmp"></select>
-    <input id="taskName" placeholder="Vazifa nomi">
-    <input type="date" id="taskDeadline">
-    <button onclick="addTask()">Vazifa berish</button>
-  </section>
-
-</main>
-
-</div>
-
-<script src="script.js"></script>
+<script>
+function go(page){ location.href = page; }
+</script>
 </body>
 </html>
-
