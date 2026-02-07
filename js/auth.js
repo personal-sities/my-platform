@@ -5,7 +5,7 @@ if (!localStorage.getItem("user")) {
   }));
 }
 
-function login() {
+function doLogin() {
   const l = login.value;
   const p = password.value;
   const u = JSON.parse(localStorage.getItem("user"));
