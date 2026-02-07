@@ -67,3 +67,32 @@ th, td {
 th {
   font-weight: 700;
 }
+
+/* LOGIN LOGO */
+.logo-login {
+  width: 140px;
+  display: block;
+  margin: 0 auto 20px;
+}
+
+/* HEADER */
+.main-header {
+  background: #1f5fa3;
+  padding: 18px 30px;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  color: white;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.logo-header {
+  height: 45px;
+}
+
+
+
