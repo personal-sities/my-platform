@@ -192,3 +192,112 @@ body{
     background:#174a84;
     transform:translateY(-4px);
 }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f5f7fa;
+  margin: 0;
+}
+
+.main-header {
+  background: #1e5fa8;
+  color: #fff;
+  padding: 15px 30px;
+}
+
+.page-title {
+  text-align: center;
+  margin: 20px 0;
+}
+
+.container {
+  max-width: 1100px;
+  margin: auto;
+}
+
+.employee-card {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  border: 3px solid #1e5fa8;
+  border-radius: 12px;
+  padding: 20px;
+  background: #fff;
+  margin-bottom: 10px;
+}
+
+.employee-left h3 {
+  margin: 0;
+  color: #1e5fa8;
+}
+
+.employee-right {
+  display: flex;
+  gap: 10px;
+}
+
+.emp-btn {
+  background: #1e5fa8;
+  color: #fff;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.add-btn {
+  position: absolute;
+  right: 20px;
+  bottom: -18px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #1e5fa8;
+  color: #fff;
+  font-size: 22px;
+  border: none;
+  cursor: pointer;
+}
+
+.task-box {
+  display: none;
+  border: 2px dashed #1e5fa8;
+  padding: 10px;
+  margin-bottom: 15px;
+  border-radius: 8px;
+  background: #f9fbff;
+}
+
+.add-employee-btn {
+  display: block;
+  margin: 30px auto;
+  background: #1e5fa8;
+  color: #fff;
+  border: none;
+  padding: 12px 25px;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: #fff;
+  padding: 25px;
+  border-radius: 10px;
+  width: 320px;
+}
+
+.modal-content input {
+  width: 100%;
+  margin: 8px 0;
+  padding: 8px;
+}
+
