@@ -208,44 +208,47 @@ function lockRow(tr, lock=true){
 
 /* ===== UNIVERSITET QO‘SHISH ===== */
 function addUniver(){
-    const name = addName.value.trim();
-    const work = addWork.value.trim();
+    const name=addName.value.trim();
+    const work=addWork.value.trim();
     if(!name) return alert("Universitet nomini kiriting");
 
-    const id = Date.now();
-    const tr = document.createElement("tr");
+    const id=Date.now();
+    const tr=document.createElement("tr");
 
-    tr.innerHTML = `
+    tr.innerHTML=`
 <td class="univer">${name}</td>
 
 <td class="status-box">
-<label><input type="checkbox"> Berildi</label>
-<label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
+  <label><input type="checkbox"> Berildi</label>
+  <label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
 </td>
 
 <td><input type="date"></td>
 
 <td class="status-box">
-<label><input type="checkbox"> Berildi</label>
-<label><input type="checkbox"> Rozi</label>
-<label><input type="checkbox"> Rad etildi</label>
-<label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
+  <label><input type="checkbox"> Berildi</label>
+  <label><input type="checkbox"> Rozi</label>
+  <label><input type="checkbox"> Rad etildi</label>
+  <label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
 </td>
 
 <td class="status-box">
-<label><input type="radio" name="s${id}"> Tuzildi</label>
-<label><input type="radio" name="s${id}"> Tuzilmadi</label>
+  <label><input type="radio" name="s${id}"> Tuzildi</label>
+  <label><input type="radio" name="s${id}"> Tuzilmadi</label>
 </td>
 
 <td>${work}</td>
 
 <td class="status-box">
-<label><input type="radio" name="y${id}"> Yakunlandi</label>
-<label><input type="radio" name="y${id}"> Jarayonda</label>
+  <label><input type="radio" name="y${id}"> Yakunlandi</label>
+  <label><input type="radio" name="y${id}"> Jarayonda</label>
 </td>
 
 <td><input class="comment" placeholder="Koment..."></td>
 
+<td>
+  <button class="btn" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
+</td>
 `;
 
     tbody.appendChild(tr);
@@ -322,5 +325,6 @@ tbody.addEventListener("input", saveData);
 
 </body>
 </html>
+
 
 
