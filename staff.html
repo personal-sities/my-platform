@@ -5,144 +5,141 @@
 <title>Hodimlar nazorati</title>
 
 <style>
-body{
-    margin:0;
-    font-family:Segoe UI;
-    background:#f2f4f7;
-}
+body{margin:0;font-family:Segoe UI;background:#f3f5f7}
 
 /* HEADER */
 .header{
     background:#2b5f98;
     color:white;
-    padding:30px;
-    font-size:32px;
-    font-weight:bold;
-    text-align:center;
+    padding:20px 40px;
+    display:flex;
+    align-items:center;
 }
+.logo{
+    width:50px;
+    height:50px;
+    background:white;
+    border-radius:10px;
+    margin-right:20px;
+}
+.title{font-size:28px;font-weight:bold}
 
 /* CARD */
-.container{
-    width:85%;
-    margin:40px auto;
-}
-
+.container{width:85%;margin:40px auto}
 .card{
-    background:white;
     border:3px solid #2b5f98;
-    border-radius:14px;
+    border-radius:15px;
     padding:25px;
-    margin-bottom:30px;
+    margin-bottom:25px;
+    background:white;
+    position:relative;
 }
 
-.name{
-    font-size:26px;
-    font-weight:bold;
-    color:#2b5f98;
-}
-
-.info{
-    margin-top:6px;
-    font-size:18px;
-}
-
-.buttons{
-    margin-top:20px;
-}
-
+.name{font-size:24px;font-weight:bold;color:#2b5f98}
 .btn{
     background:#2b5f98;
     color:white;
     border:none;
-    padding:12px 24px;
+    padding:10px 20px;
     border-radius:10px;
-    font-size:16px;
+    margin-top:15px;
     margin-right:10px;
     cursor:pointer;
 }
-
 .plus{
-    float:right;
+    position:absolute;
+    right:25px;
+    top:50%;
+    transform:translateY(-50%);
+    width:50px;
+    height:50px;
     border-radius:50%;
-    width:45px;
-    height:45px;
     font-size:22px;
 }
 
-.section{
-    display:none;
-    margin-top:20px;
-    border-top:1px solid #ddd;
-    padding-top:15px;
-}
+.section{display:none;margin-top:20px;border-top:1px solid #ddd;padding-top:10px}
 
 .bottom{
-    text-align:center;
-    margin:30px 0 50px;
+    width:85%;
+    margin:30px auto;
+    display:flex;
+    justify-content:space-between;
 }
-
-.green{background:#28a745;}
-.red{background:#dc3545;}
+.green{background:#28a745}
+.red{background:#dc3545}
 </style>
 </head>
 
 <body>
 
-<div class="header">Hodimlar nazorati</div>
+<div class="header">
+    <div class="logo"></div>
+    <div class="title">Hodimlar nazorati</div>
+</div>
 
 <div class="container" id="staffContainer"></div>
 
 <div class="bottom">
-    <button class="btn green" onclick="addStaff()">Hodim qo'shish +</button>
     <button class="btn red" onclick="history.back()">Orqaga</button>
+    <button class="btn green" onclick="addStaff()">Hodim qo'shish +</button>
 </div>
 
 <script>
 
-function createStaff(name, role, place){
+function createStaff(name,role,place){
     const card=document.createElement("div");
     card.className="card";
 
     card.innerHTML=`
         <div class="name">${name}</div>
-        <div class="info">Lavozimi: ${role}</div>
-        <div class="info">Ish joyi: ${place}</div>
+        <div>Lavozimi: ${role}</div>
+        <div>Ish joyi: ${place}</div>
 
-        <div class="buttons">
-            <button class="btn" onclick="toggle(this)">Vazifalari</button>
-            <button class="btn" onclick="toggle(this)">Bajarilgan vazifalar</button>
-            <button class="btn" onclick="toggle(this)">Muddati o'tgan vazifalar</button>
-            <button class="btn plus" onclick="addTask(this)">+</button>
-        </div>
+        <button class="btn" onclick="toggle(this,0)">Vazifalari</button>
+        <button class="btn" onclick="toggle(this,1)">Bajarilgan vazifalar</button>
+        <button class="btn" onclick="toggle(this,2)">Muddati o'tgan vazifalar</button>
+
+        <button class="btn plus" onclick="addTask(this)">+</button>
 
         <div class="section"></div>
         <div class="section"></div>
         <div class="section"></div>
     `;
-
-    document.getElementById("staffContainer").appendChild(card);
+    staffContainer.appendChild(card);
 }
 
-function toggle(btn){
-    const card=btn.closest(".card");
-    const btns=[...card.querySelectorAll(".buttons .btn")];
-    const sections=card.querySelectorAll(".section");
-    const index=btns.indexOf(btn);
-    if(index<3){
-        sections[index].style.display =
-        sections[index].style.display==="block"?"none":"block";
-    }
+function toggle(btn,i){
+    const sec=btn.parentElement.querySelectorAll(".section")[i];
+    sec.style.display=sec.style.display==="block"?"none":"block";
 }
 
 function addTask(btn){
     const name=prompt("Vazifa nomi:");
-    const date=prompt("Bajarish muddati:");
-    const place=prompt("Bajariladigan joyi:");
+    const date=prompt("Bajarish muddati YYYY-MM-DD:");
+    const place=prompt("Bajariladigan joy:");
     if(!name) return;
 
-    const sec=btn.closest(".card").querySelector(".section");
-    sec.style.display="block";
-    sec.innerHTML+=`<p><b>${name}</b> | ${date} | ${place}</p>`;
+    const card=btn.closest(".card");
+    const sections=card.querySelectorAll(".section");
+    const now=new Date().toISOString().split("T")[0];
+
+    if(date<now){
+        sections[2].innerHTML+=`<p>${name} (${place})</p>`;
+        return;
+    }
+
+    sections[0].innerHTML+=`
+        <p>
+        ${name} (${place}) - ${date}
+        <button onclick="completeTask(this)">Bajarildi</button>
+        </p>`;
+}
+
+function completeTask(btn){
+    const p=btn.parentElement;
+    const card=btn.closest(".card");
+    card.querySelectorAll(".section")[1].appendChild(p);
+    btn.remove();
 }
 
 function addStaff(){
@@ -150,15 +147,12 @@ function addStaff(){
     const role=prompt("Lavozimi:");
     const place=prompt("Ish joyi:");
     if(!name) return;
-
     createStaff(name,role,place);
 }
 
-/* default */
 createStaff("Jumatullayev Jonibek","SMS/CRM","Birja");
 createStaff("Isroilov Isfandiyor","SMS/CRM","Birja");
 
 </script>
-
 </body>
 </html>
