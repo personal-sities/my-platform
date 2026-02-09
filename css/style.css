@@ -5,88 +5,80 @@
   font-family: "Segoe UI", sans-serif;
 }
 
-/* HEADER */
-.main-header {
-  background: #1f5ea8;
-  padding: 14px 30px;
-  color: #fff;
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
 }
 
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-weight: 600;
-  font-size: 18px;
-}
-
-.logo-header {
-  height: 36px;
-}
-
-/* LOGIN CARD */
-.login-wrap {
+body.login-page {
+  margin: 0;
+  background: #f4f6fb;
+  height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
-  padding-top: 60px;
 }
 
-.login-card {
-  background: #fff;
-  width: 360px;
-  padding: 28px;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
-}
-
-.login-card h2 {
-  margin: 0 0 6px;
+/* CENTER */
+.login-center {
+  width: 420px;
   text-align: center;
 }
 
-.subtitle {
-  text-align: center;
-  color: #666;
-  font-size: 14px;
-  margin-bottom: 20px;
+/* LOGO */
+.login-logo {
+  width: 120px;
+  margin-bottom: 15px;
 }
 
-.login-card input {
+/* TITLE */
+.login-title {
+  color: #1f5fa8;
+  margin: 10px 0;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+/* SUBTITLE */
+.login-subtitle {
+  color: #1f5fa8;
+  margin-bottom: 30px;
+  font-size: 15px;
+}
+
+/* INPUTS */
+.login-center input {
   width: 100%;
-  padding: 12px;
-  margin-bottom: 14px;
-  border-radius: 8px;
-  border: 1px solid #ddd;
-  font-size: 14px;
-}
-
-.login-card input:focus {
+  padding: 14px 16px;
+  margin-bottom: 18px;
+  border: 2px solid #1f5fa8;
+  border-radius: 10px;
+  font-size: 16px;
   outline: none;
-  border-color: #1f5ea8;
 }
 
-.btn-primary {
+/* BUTTON */
+.login-center button {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
+  background: #1f5fa8;
+  color: #fff;
   border: none;
   border-radius: 10px;
-  background: #1f5ea8;
-  color: #fff;
-  font-size: 15px;
+  font-size: 16px;
   cursor: pointer;
-  transition: 0.2s;
+  margin-top: 10px;
 }
 
-.btn-primary:hover {
+.login-center button:hover {
   background: #174b86;
 }
 
-.link-muted {
+/* LINK */
+.login-link {
   display: block;
-  text-align: center;
-  margin-top: 14px;
-  font-size: 13px;
-  color: #666;
-  text-decoration: none;
+  margin-top: 18px;
+  color: #1f5fa8;
+  text-decoration: underline;
+  font-size: 14px;
 }
