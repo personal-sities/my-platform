@@ -7,44 +7,67 @@
 </head>
 <body>
 
+<!-- HEADER -->
 <header class="main-header">
   <div class="header-left">
+    <img src="images/studentcall.png" class="logo-header" alt="logo">
     <span>STUDENT CALL</span>
   </div>
 </header>
 
 <h2 class="page-title">Hodimlar nazorati</h2>
 
+<!-- ASOSIY QISM -->
 <div class="container">
+
+  <!-- Hodimlar shu yerda chiqadi -->
   <div id="staffList"></div>
 
+  <!-- Hodim qo‘shish tugmasi -->
   <button class="add-employee-btn" onclick="openEmployeeModal()">
     Hodim qo‘shish +
   </button>
+
+  <a href="dashboard.html" class="back-link">⬅ Orqaga</a>
 </div>
 
-<!-- Hodim qo‘shish -->
+<!-- ===================== -->
+<!-- HODIM QO‘SHISH MODAL -->
+<!-- ===================== -->
 <div id="employeeModal" class="modal">
   <div class="modal-content">
     <h3>Hodim qo‘shish</h3>
-    <input id="empName" placeholder="Ism familiyasi">
-    <input id="empJob" placeholder="Lavozimi">
-    <input id="empPlace" placeholder="Ish joyi">
-    <button class="emp-btn" onclick="addStaff()">Saqlash</button>
+
+    <input id="empName" type="text" placeholder="Ism familiyasi">
+    <input id="empJob" type="text" placeholder="Lavozimi">
+    <input id="empPlace" type="text" placeholder="Ish joyi">
+
+    <div class="modal-actions">
+      <button class="emp-btn" onclick="addStaff()">Saqlash</button>
+      <button class="cancel-btn" onclick="closeEmployeeModal()">Bekor qilish</button>
+    </div>
   </div>
 </div>
 
-<!-- Vazifa qo‘shish -->
+<!-- ===================== -->
+<!-- VAZIFA QO‘SHISH MODAL -->
+<!-- ===================== -->
 <div id="taskModal" class="modal">
   <div class="modal-content">
     <h3>Vazifa qo‘shish</h3>
-    <input id="taskName" placeholder="Vazifa nomi">
+
+    <input id="taskName" type="text" placeholder="Vazifa nomi">
     <input id="taskDate" type="date">
-    <input id="taskPlace" placeholder="Bajarish joyi">
-    <button class="emp-btn" onclick="addTask()">Saqlash</button>
+    <input id="taskPlace" type="text" placeholder="Vazifani bajarish joyi">
+
+    <div class="modal-actions">
+      <button class="emp-btn" onclick="addTask()">Saqlash</button>
+      <button class="cancel-btn" onclick="closeTaskModal()">Bekor qilish</button>
+    </div>
   </div>
 </div>
 
+<!-- JS -->
 <script src="js/staff.js"></script>
 </body>
 </html>
