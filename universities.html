@@ -1,135 +1,114 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-<meta charset="UTF-8" />
+<meta charset="UTF-8">
 <title>Universitetlar monitoringi</title>
 
 <style>
-    :root{
-        --blue:#1f5fa8;
-        --border:#1f5fa8;
-        --bg:#f4f7fb;
-        --green:#1fa84a;
-        --red:#c0392b;
-        --orange:#d35400;
-    }
+:root{
+    --blue:#1f5fa8;
+    --bg:#f4f7fb;
+    --border:#1f5fa8;
+}
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:var(--bg)}
 
-    *{box-sizing:border-box;font-family:Arial, sans-serif}
-    body{margin:0;background:var(--bg)}
+.header{
+    background:var(--blue);
+    color:#fff;
+    padding:15px 25px;
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+.logo{height:45px}
+.header h1{margin:0;font-size:22px}
 
-    /* HEADER */
-    .header{
-        background:var(--blue);
-        color:#fff;
-        padding:15px 25px;
-        display:flex;
-        align-items:center;
-        gap:15px;
-    }
-    .logo{height:45px}
-    .header h1{font-size:22px;margin:0}
+.container{padding:25px}
 
-    /* CONTAINER */
-    .container{padding:25px}
+.filter{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+}
+.filter input{padding:8px;width:250px}
 
-    /* FILTER */
-    .filter{
-        margin-bottom:15px;
-        display:flex;
-        gap:10px;
-        align-items:center;
-    }
-    .filter input{
-        padding:8px;
-        width:250px;
-    }
-    .btn{
-        background:var(--blue);
-        color:#fff;
-        border:none;
-        padding:8px 14px;
-        border-radius:6px;
-        cursor:pointer;
-    }
+.btn{
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+}
 
-    /* TABLE */
-    table{
-        width:100%;
-        border-collapse:collapse;
-        background:#fff;
-    }
-    th,td{
-        border:2px solid var(--border);
-        padding:10px;
-        text-align:center;
-        vertical-align:middle;
-    }
-    th{
-        color:var(--blue);
-        font-weight:bold;
-        background:#f9fbff;
-    }
-    .univer{
-        font-weight:bold;
-        color:var(--blue);
-        text-align:left;
-    }
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:#fff;
+}
+th,td{
+    border:2px solid var(--border);
+    padding:8px;
+    text-align:center;
+}
+th{color:var(--blue);background:#f9fbff}
 
-    /* STATUS */
-    .status{
-        cursor:pointer;
-        min-height:22px;
-    }
-    .green{color:var(--green)}
-    .red{color:var(--red)}
-    .orange{color:var(--orange)}
+.univer{
+    font-weight:bold;
+    color:var(--blue);
+    text-align:left;
+}
 
-    select{
-        width:100%;
-        padding:5px;
-    }
+.status-box{
+    text-align:left;
+    font-size:13px;
+}
+.status-box label{display:block;cursor:pointer}
 
-    /* COMMENT */
-    .comment{
-        width:100%;
-        border:none;
-        outline:none;
-        padding:5px;
-    }
+.comment{
+    width:100%;
+    border:none;
+    outline:none;
+}
 
-    /* FOOTER */
-    .footer{
-        margin-top:15px;
-        display:flex;
-        justify-content:space-between;
-    }
+.footer{
+    margin-top:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
 
-    /* MODAL */
-    .modal{
-        position:fixed;
-        inset:0;
-        background:rgba(0,0,0,.4);
-        display:none;
-        align-items:center;
-        justify-content:center;
-    }
-    .modal-box{
-        background:#fff;
-        padding:20px;
-        width:350px;
-        border-radius:10px;
-    }
-    .modal-box h3{margin-top:0}
-    .modal-box input{
-        width:100%;
-        margin-bottom:10px;
-        padding:8px;
-    }
+/* MODAL */
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.4);
+    display:none;
+    align-items:center;
+    justify-content:center;
+}
+.modal-box{
+    background:#fff;
+    padding:20px;
+    width:350px;
+    border-radius:10px;
+}
+.modal-box h3{margin-top:0}
+.modal-box input{
+    width:100%;
+    padding:8px;
+    margin-bottom:10px;
+}
+.modal-actions{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+}
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
 <div class="header">
     <img src="images/studentcall.png" class="logo">
     <h1>Universitetlar monitoringi</h1>
@@ -137,93 +116,132 @@
 
 <div class="container">
 
-    <!-- FILTER -->
     <div class="filter">
-        <input type="text" id="filterInput" placeholder="Universitet nomi bo‘yicha filtr">
+        <input id="filterInput" placeholder="Universitet nomi bo‘yicha filtr">
         <button class="btn" onclick="filterTable()">Filtr</button>
     </div>
 
-    <!-- TABLE -->
     <table id="table">
         <thead>
-            <tr>
-                <th>Univer nomi</th>
-                <th>Taklif</th>
-                <th>Suhbat sanasi</th>
-                <th>Коммерческий предложение</th>
-                <th>Shartnoma</th>
-                <th>Ish boshlandi</th>
-                <th>Yakun</th>
-                <th>Koment</th>
-            </tr>
+        <tr>
+            <th>Univer nomi</th>
+            <th>Taklif</th>
+            <th>Suhbat sanasi</th>
+            <th>Коммерческий предложение</th>
+            <th>Shartnoma</th>
+            <th>Ish boshlandi</th>
+            <th>Yakun</th>
+            <th>Koment</th>
+        </tr>
         </thead>
         <tbody></tbody>
     </table>
 
-    <!-- FOOTER -->
     <div class="footer">
         <button class="btn" onclick="history.back()">← Orqaga</button>
-        <button class="btn" onclick="openModal()">Univer qo‘shish +</button>
+        <div>
+            <button class="btn" onclick="openDelete()">Univerni o‘chirish −</button>
+            <button class="btn" onclick="openAdd()">Univer qo‘shish +</button>
+        </div>
     </div>
 </div>
 
-<!-- MODAL -->
-<div class="modal" id="modal">
+<!-- ADD MODAL -->
+<div class="modal" id="addModal">
     <div class="modal-box">
         <h3>Universitet qo‘shish</h3>
-        <input id="univerName" placeholder="Universitet nomi">
-        <input id="startWork" placeholder="Ish boshlandi (AI Bot, Platforma...)">
-        <button class="btn" onclick="addUniver()">Qo‘shish</button>
+        <input id="addName" placeholder="Universitet nomi">
+        <input id="addWork" placeholder="Ish boshlandi (AI Bot, Platforma...)">
+        <div class="modal-actions">
+            <button class="btn" onclick="addUniver()">Qo‘shish</button>
+        </div>
+    </div>
+</div>
+
+<!-- DELETE MODAL -->
+<div class="modal" id="deleteModal">
+    <div class="modal-box">
+        <h3>Universitet o‘chirish</h3>
+        <input id="deleteName" placeholder="O‘chiriladigan univer nomi">
+        <div class="modal-actions">
+            <button class="btn" onclick="deleteUniver()">O‘chirish</button>
+        </div>
     </div>
 </div>
 
 <script>
-const tbody = document.querySelector("tbody");
-
-function statusCell(){
-    return `
-    <select onchange="this.parentElement.innerHTML=this.value">
-        <option value=""></option>
-        <option class="green">Berildi</option>
-        <option class="orange">O‘ylab ko‘rmoqda</option>
-        <option class="red">Rad etildi</option>
-    </select>`;
-}
+const tbody=document.querySelector("tbody");
 
 function addUniver(){
-    const name = univerName.value.trim();
-    const work = startWork.value.trim();
+    const name=addName.value.trim();
+    const work=addWork.value.trim();
     if(!name) return alert("Universitet nomini kiriting");
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
+    const tr=document.createElement("tr");
+    tr.innerHTML=`
         <td class="univer">${name}</td>
-        <td class="status">${statusCell()}</td>
-        <td></td>
-        <td class="status">${statusCell()}</td>
-        <td class="status">${statusCell()}</td>
+
+        <td class="status-box">
+            <label><input type="checkbox"> Berildi</label>
+            <label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
+            <label><input type="checkbox"> Rad etildi</label>
+        </td>
+
+        <td><input type="date"></td>
+
+        <td class="status-box">
+            <label><input type="checkbox"> Berildi</label>
+            <label><input type="checkbox"> Rozi</label>
+            <label><input type="checkbox"> Rad etildi</label>
+            <label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
+        </td>
+
+        <td class="status-box">
+            <label><input type="radio" name="s${Date.now()}"> Tuzildi</label>
+            <label><input type="radio" name="s${Date.now()}"> Tuzilmadi</label>
+        </td>
+
         <td>${work}</td>
-        <td class="status">${statusCell()}</td>
+
+        <td class="status-box">
+            <label><input type="radio" name="y${Date.now()}"> Yakunlandi</label>
+            <label><input type="radio" name="y${Date.now()}"> Jarayonda</label>
+        </td>
+
         <td><input class="comment" placeholder="Koment..."></td>
     `;
     tbody.appendChild(tr);
-    modal.style.display="none";
-    univerName.value="";
-    startWork.value="";
+    addModal.style.display="none";
+    addName.value="";
+    addWork.value="";
 }
 
-function openModal(){ modal.style.display="flex"; }
+function deleteUniver(){
+    const name=deleteName.value.trim().toLowerCase();
+    let found=false;
+    [...tbody.rows].forEach(r=>{
+        if(r.cells[0].innerText.toLowerCase()===name){
+            r.remove(); found=true;
+        }
+    });
+    if(!found) alert("Universitet topilmadi");
+    deleteModal.style.display="none";
+    deleteName.value="";
+}
 
 function filterTable(){
-    const val = filterInput.value.toLowerCase();
+    const v=filterInput.value.toLowerCase();
     [...tbody.rows].forEach(r=>{
-        r.style.display = r.cells[0].innerText.toLowerCase().includes(val) ? "" : "none";
+        r.style.display=r.cells[0].innerText.toLowerCase().includes(v)?"":"none";
     });
 }
 
-modal.onclick=e=>{ if(e.target===modal) modal.style.display="none"; }
+function openAdd(){addModal.style.display="flex"}
+function openDelete(){deleteModal.style.display="flex"}
+
+addModal.onclick=e=>{if(e.target===addModal)addModal.style.display="none"}
+deleteModal.onclick=e=>{if(e.target===deleteModal)deleteModal.style.display="none"}
 </script>
 
 </body>
 </html>
-
