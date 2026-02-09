@@ -173,7 +173,7 @@ th{color:var(--blue);background:#f9fbff}
 const tbody=document.querySelector("tbody");
 
 function saveData(){
-localStorage.setItem("universities", tbody.innerHTML);
+    localStorage.setItem("universities", tbody.innerHTML);
 }
 
 
@@ -227,12 +227,14 @@ function deleteUniver(){
     let found=false;
     [...tbody.rows].forEach(r=>{
         if(r.cells[0].innerText.toLowerCase()===name){
-            r.remove(); found=true;
+            r.remove(); 
+            found=true;
         }
     });
     if(!found) alert("Universitet topilmadi");
     deleteModal.style.display="none";
     deleteName.value="";
+    saveData(); // 🔴 MUHIM
 }
 
 function filterTable(){
@@ -260,4 +262,5 @@ tbody.addEventListener("input", saveData);
 
 </body>
 </html>
+
 
