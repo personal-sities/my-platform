@@ -7,27 +7,24 @@
 </head>
 <body class="login-page">
 
-  <!-- HEADER -->
-  <header class="main-header">
-    <div class="header-left">
-      <img src="images/studentcall.png" class="logo-header" alt="Student Call">
-      <span>STUDENT CALL</span>
-    </div>
-  </header>
+  <main class="login-center">
 
-  <!-- LOGIN CARD -->
-  <main class="login-wrap">
-    <div class="login-card">
-      <h2>Kirish</h2>
-      <p class="subtitle">Platformadan foydalanish uchun login va parolni kiriting</p>
+    <img src="images/studentcall.png" class="login-logo" alt="Student Call">
 
-      <input id="login" placeholder="Login">
-      <input id="password" type="password" placeholder="Parol">
+    <h1 class="login-title">STUDENT CALL</h1>
+    <p class="login-subtitle">
+      Platformadan foydalanishingiz uchun login va parolni kiriting!
+    </p>
 
-      <button class="btn-primary" onclick="doLogin()">Kirish</button>
+    <input id="login" placeholder="Login">
+    <input id="password" type="password" placeholder="Parol">
 
-      <a class="link-muted" href="reset.html">Login yoki parolni unutdingizmi?</a>
-    </div>
+    <button onclick="doLogin()">Kirish</button>
+
+    <a href="reset.html" class="login-link">
+      Login yoki parolni unutdingizmi?
+    </a>
+
   </main>
 
   <script src="js/auth.js"></script>
