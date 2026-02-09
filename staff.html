@@ -15,13 +15,41 @@
 <header>Hodimlar nazorati</header>
 
 <div class="container">
-  <button onclick="addStaff()">Hodim qo‘shish +</button>
+
+  <!-- Hodim kartalari shu yerga chiqadi -->
   <div id="staffList"></div>
+
+  <!-- Hodim qo‘shish -->
+  <button class="add-employee-btn" onclick="openEmployeeModal()">
+    Hodim qo‘shish +
+  </button>
 
   <a href="dashboard.html">⬅ Orqaga</a>
 </div>
-
 <script src="js/staff.js"></script>
+  <!-- Vazifa qo‘shish -->
+<div id="taskModal" class="modal">
+  <div class="modal-content">
+    <h3>Vazifa qo‘shish</h3>
+    <input placeholder="Vazifa nomi">
+    <input type="date">
+    <input placeholder="Vazifani bajarish joyi">
+    <button class="emp-btn" onclick="closeTaskModal()">Saqlash</button>
+  </div>
+</div>
+
+<!-- Hodim qo‘shish -->
+<div id="employeeModal" class="modal">
+  <div class="modal-content">
+    <h3>Hodim qo‘shish</h3>
+    <input placeholder="Ism familiyasi">
+    <input placeholder="Lavozimi">
+    <input placeholder="Ish joyi">
+    <button class="emp-btn" onclick="closeEmployeeModal()">Saqlash</button>
+  </div>
+</div>
+
 </body>
 </html>
+
 
