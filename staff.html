@@ -5,64 +5,40 @@
 <title>Hodimlar nazorati</title>
 
 <style>
-body{margin:0;font-family:Segoe UI;background:#f3f5f7}
-
-/* HEADER */
+body{
+    margin:0;
+    font-family:Segoe 
+        UI;background:#f3f5f7
+}
 .header{
     background:#2b5f98;
-    color:white;
+    color:#fff;
     padding:20px 40px;
     display:flex;
-    align-items:center;
+    align-items:center
 }
 .logo{
     width:55px;
     height:55px;
     margin-right:15px;
 }
-.title{font-size:28px;font-weight:bold}
 
-/* CARD */
-.container{width:85%;margin:40px auto}
-.card{
-    border:3px solid #2b5f98;
-    border-radius:15px;
-    padding:25px;
-    margin-bottom:25px;
-    background:white;
-    position:relative;
+.title{
+    font-size:28px;
+    font-weight:bold
 }
 
-.name{font-size:24px;font-weight:bold;color:#2b5f98}
-.btn{
-    background:#2b5f98;
-    color:white;
-    border:none;
-    padding:10px 20px;
-    border-radius:10px;
-    margin-top:15px;
-    margin-right:10px;
-    cursor:pointer;
-}
-.plus{
-    position:absolute;
-    right:25px;
-    top:50%;
-    transform:translateY(-50%);
-    width:50px;
-    height:50px;
-    border-radius:50%;
-    font-size:22px;
-}
-
-.section{display:none;margin-top:20px;border-top:1px solid #ddd;padding-top:10px}
-
-.bottom{
+.container{
     width:85%;
-    margin:30px auto;
-    display:flex;
-    justify-content:space-between;
+    margin:40px auto
 }
+.card{
+    border:3px solid #2b5f98;border-radius:15px;padding:25px;margin-bottom:25px;background:white;position:relative}
+.name{font-size:24px;font-weight:bold;color:#2b5f98}
+.btn{background:#2b5f98;color:white;border:none;padding:10px 20px;border-radius:10px;margin-top:15px;margin-right:10px;cursor:pointer}
+.plus{position:absolute;right:25px;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;font-size:22px}
+.section{display:none;margin-top:20px;border-top:1px solid #ddd;padding-top:10px}
+.bottom{width:85%;margin:30px auto;display:flex;justify-content:space-between}
 .green{background:#28a745}
 .red{background:#dc3545}
 </style>
@@ -71,39 +47,53 @@ body{margin:0;font-family:Segoe UI;background:#f3f5f7}
 <body>
 
 <div class="header">
-    <img src="images/studentcall.png" class="logo">
-    <div class="title">Hodimlar nazorati</div>
+<img src="images/studentcall.png" class="logo">
+<div class="title">Hodimlar nazorati</div>
 </div>
 
 <div class="container" id="staffContainer"></div>
 
 <div class="bottom">
-    <button class="btn red" onclick="history.back()">Orqaga</button>
-    <button class="btn green" onclick="addStaff()">Hodim qo'shish +</button>
+<button class="btn red" onclick="history.back()">Orqaga</button>
+<button class="btn green" onclick="addStaff()">Hodim qo'shish +</button>
 </div>
 
 <script>
 
-function createStaff(name,role,place){
-    const card=document.createElement("div");
-    card.className="card";
+let staff = JSON.parse(localStorage.getItem("staff")) || [];
 
-    card.innerHTML=`
-        <div class="name">${name}</div>
-        <div>Lavozimi: ${role}</div>
-        <div>Ish joyi: ${place}</div>
+function save(){
+    localStorage.setItem("staff",JSON.stringify(staff));
+}
+
+function render(){
+    staffContainer.innerHTML="";
+    staff.forEach((s,i)=>{
+        const card=document.createElement("div");
+        card.className="card";
+
+        card.innerHTML=`
+        <div class="name">${s.name}</div>
+        <div>Lavozimi: ${s.role}</div>
+        <div>Ish joyi: ${s.place}</div>
 
         <button class="btn" onclick="toggle(this,0)">Vazifalari</button>
         <button class="btn" onclick="toggle(this,1)">Bajarilgan vazifalar</button>
         <button class="btn" onclick="toggle(this,2)">Muddati o'tgan vazifalar</button>
+        <button class="btn plus" onclick="addTask(${i})">+</button>
 
-        <button class="btn plus" onclick="addTask(this)">+</button>
+        <div class="section">${tasksHTML(s.tasks,0,i)}</div>
+        <div class="section">${tasksHTML(s.tasks,1,i)}</div>
+        <div class="section">${tasksHTML(s.tasks,2,i)}</div>
+        `;
+        staffContainer.appendChild(card);
+    });
+}
 
-        <div class="section"></div>
-        <div class="section"></div>
-        <div class="section"></div>
-    `;
-    staffContainer.appendChild(card);
+function tasksHTML(tasks,status,index){
+    return tasks.filter(t=>t.status===status).map((t,ti)=>{
+        return `<p>${t.name} ${status==0?`<button onclick="done(${index},${ti})">Bajarildi</button>`:""}</p>`;
+    }).join("");
 }
 
 function toggle(btn,i){
@@ -111,48 +101,42 @@ function toggle(btn,i){
     sec.style.display=sec.style.display==="block"?"none":"block";
 }
 
-function addTask(btn){
-    const name=prompt("Vazifa nomi:");
-    const date=prompt("Bajarish muddati YYYY-MM-DD:");
-    const place=prompt("Bajariladigan joy:");
-    if(!name) return;
-
-    const card=btn.closest(".card");
-    const sections=card.querySelectorAll(".section");
-    const now=new Date().toISOString().split("T")[0];
-
-    if(date<now){
-        sections[2].innerHTML+=`<p>${name} (${place})</p>`;
-        return;
-    }
-
-    sections[0].innerHTML+=`
-        <p>
-        ${name} (${place}) - ${date}
-        <button onclick="completeTask(this)">Bajarildi</button>
-        </p>`;
-}
-
-function completeTask(btn){
-    const p=btn.parentElement;
-    const card=btn.closest(".card");
-    card.querySelectorAll(".section")[1].appendChild(p);
-    btn.remove();
-}
-
 function addStaff(){
     const name=prompt("Ism familiya:");
     const role=prompt("Lavozimi:");
     const place=prompt("Ish joyi:");
     if(!name) return;
-    createStaff(name,role,place);
+    staff.push({name,role,place,tasks:[]});
+    save(); render();
 }
 
-createStaff("Jumatullayev Jonibek","SMS/CRM","Birja");
-createStaff("Isroilov Isfandiyor","SMS/CRM","Birja");
+function addTask(i){
+    const name=prompt("Vazifa nomi:");
+    const date=prompt("Muddat YYYY-MM-DD:");
+    if(!name) return;
+
+    const now=new Date().toISOString().split("T")[0];
+    let status = date<now ? 2 : 0;
+
+    staff[i].tasks.push({name,date,status});
+    save(); render();
+}
+
+function done(i,ti){
+    staff[i].tasks[ti].status=1;
+    save(); render();
+}
+
+if(staff.length===0){
+    staff=[
+        {name:"Jumatullayev Jonibek",role:"SMS/CRM",place:"Birja",tasks:[]},
+        {name:"Isroilov Isfandiyor",role:"SMS/CRM",place:"Birja",tasks:[]}
+    ];
+    save();
+}
+
+render();
 
 </script>
 </body>
 </html>
-
-
