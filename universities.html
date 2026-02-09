@@ -172,6 +172,11 @@ th{color:var(--blue);background:#f9fbff}
 <script>
 const tbody=document.querySelector("tbody");
 
+function saveData(){
+localStorage.setItem("universities", tbody.innerHTML);
+}
+
+
 function addUniver(){
     const name=addName.value.trim();
     const work=addWork.value.trim();
@@ -214,6 +219,7 @@ function addUniver(){
     addModal.style.display="none";
     addName.value="";
     addWork.value="";
+    saveData();
 }
 
 function deleteUniver(){
@@ -241,7 +247,17 @@ function openDelete(){deleteModal.style.display="flex"}
 
 addModal.onclick=e=>{if(e.target===addModal)addModal.style.display="none"}
 deleteModal.onclick=e=>{if(e.target===deleteModal)deleteModal.style.display="none"}
+window.onload = function(){
+    const data = localStorage.getItem("universities");
+    if(data){
+        tbody.innerHTML = data;
+    }
+};
+
+tbody.addEventListener("change", saveData);
+tbody.addEventListener("input", saveData);
 </script>
 
 </body>
 </html>
+
