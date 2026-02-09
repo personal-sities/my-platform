@@ -1,134 +1,58 @@
-/* ===== RESET ===== */
-* { box-sizing: border-box; }
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
 body {
   margin: 0;
-  font-family: "Segoe UI", Arial, sans-serif;
-  background: #f4f6fb;
-  color: #0f2a44;
-}
-
-/* ===== HEADER (rasmdagi ko‘k panel) ===== */
-.main-header {
-  background: #1f5fa3;
-  height: 72px;
-  padding: 0 32px;
+  background: #f4f2ef;
+  height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  color: #fff;
-  font-size: 22px;
-  font-weight: 600;
-}
-
-.logo-header {
-  height: 42px;
-}
-
-/* ===== LOGIN PAGE ===== */
-.login-page { min-height: 100vh; }
-
-.login-wrap {
-  min-height: calc(100vh - 72px);
-  display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: center;
 }
 
-.login-card {
-  width: 420px;
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 34px 36px 38px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.12);
+.login-page {
   text-align: center;
+  width: 420px;
 }
 
-.login-card h2 {
-  margin: 0 0 8px;
-  font-size: 26px;
-  font-weight: 700;
+.logo {
+  width: 140px;
+  margin-bottom: 20px;
+}
+
+h1 {
+  color: #1e5fa8;
+  font-size: 38px;
+  margin: 10px 0;
+  letter-spacing: 1px;
 }
 
 .subtitle {
-  margin: 0 0 22px;
-  font-size: 14px;
-  color: #5b6f86;
+  color: #1e5fa8;
+  font-size: 18px;
+  margin-bottom: 30px;
 }
 
-.login-card input {
+input {
   width: 100%;
-  height: 46px;
-  margin-bottom: 14px;
-  padding: 0 14px;
+  padding: 14px 16px;
+  font-size: 18px;
+  margin-bottom: 18px;
+  border: 3px solid #1e5fa8;
   border-radius: 10px;
-  border: 1px solid #cfd8e3;
-  font-size: 15px;
-}
-
-.login-card input:focus {
   outline: none;
-  border-color: #1f5fa3;
 }
 
-.btn-primary {
-  width: 100%;
-  height: 48px;
-  border-radius: 12px;
-  border: none;
-  background: #1f5fa3;
-  color: #fff;
-  font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  margin-top: 6px;
+input:focus {
+  border-color: #144a85;
 }
 
-.btn-primary:hover { opacity: .95; }
-
-.link-muted {
+.forgot {
   display: inline-block;
-  margin-top: 14px;
-  font-size: 13px;
-  color: #5b6f86;
-  text-decoration: none;
-}
-
-/* ===== DASHBOARD ===== */
-.dashboard-wrap {
-  padding-top: 70px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 26px;
-}
-
-.dashboard-btn {
-  width: 520px;
-  height: 86px;
-  border-radius: 18px;
-  border: 3px solid #1f5fa3;
-  background: #ffffff;
-  color: #1f5fa3;
-  font-size: 22px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.dashboard-btn:hover {
-  background: #1f5fa3;
-  color: #fff;
-}
-
-/* ===== EXIT ===== */
-.exit-btn {
-  color: #fff;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 16px;
+  margin-top: 10px;
+  font-size: 18px;
+  color: #1e5fa8;
+  text-decoration: underline;
 }
