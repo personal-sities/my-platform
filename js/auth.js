@@ -20,14 +20,9 @@ function doLogin() {
 function resetData() {
   const u = JSON.parse(localStorage.getItem("user"));
 
-  if (
-    oldLogin.value === u.login &&
-    oldPass.value === u.password
-  ) {
-    // agar bo‘sh bo‘lsa eski qiymat qoladi
+  if (oldLogin.value === u.login && oldPass.value === u.password) {
     u.login = newLogin.value || u.login;
     u.password = newPass.value || u.password;
-
     localStorage.setItem("user", JSON.stringify(u));
     alert("Yangilandi");
     location.href = "index.html";
