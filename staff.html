@@ -126,12 +126,18 @@ function done(i,ti){
     staff[i].tasks[ti].status=1;
     save(); render();
 }
-
-
+if(staff.length===0){
+    staff=[
+        {name:"Jumatullayev Jonibek",role:"SMS/CRM",place:"Birja",tasks:[]},
+        {name:"Isroilov Isfandiyor",role:"SMS/CRM",place:"Birja",tasks:[]}
+    ];
+    save();
+}
 
 render();
 
 </script>
 </body>
 </html>
+
 
