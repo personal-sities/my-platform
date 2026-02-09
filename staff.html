@@ -86,7 +86,61 @@
 
   <h1>Hodimlar nazorati</h1>
 
-  <!-- Hozircha hodimlar yo'q, keyinchalik qo'shiladi -->
+  <!-- Hodim card -->
+  <div class="employee-card">
+    <h3>Jumatullayev Jonibek</h3>
+    <p>Lavozimi: SMS/CRM</p>
+    <p>Ish joyi: Birja</p>
+
+    <button onclick="toggleSection('tasks1')">Vazifalari</button>
+    <button onclick="toggleSection('done1')">Bajarilgan vazifalar</button>
+    <button onclick="toggleSection('overdue1')">Muddati o'tgan vazifalar</button>
+    <button onclick="toggleSection('form1')">+</button>
+
+    <div id="tasks1" class="task-list hidden">
+      <p>📌 Vazifa nomi | ⏰ Muddati | 📍 Joyi</p>
+    </div>
+    <div id="done1" class="task-list hidden">
+      <p>✅ Bajarilgan vazifalar ro'yxati</p>
+    </div>
+    <div id="overdue1" class="task-list hidden">
+      <p>⚠️ Muddati o'tgan vazifalar ro'yxati</p>
+    </div>
+    <div id="form1" class="task-form hidden">
+      <input placeholder="Vazifa nomi">
+      <input type="date">
+      <input placeholder="Bajariladigan joyi">
+      <button>Saqlash</button>
+    </div>
+  </div>
+
+  <!-- Ikkinchi hodim card -->
+  <div class="employee-card">
+    <h3>Isroilov Isfandiyor</h3>
+    <p>Lavozimi: SMS/CRM</p>
+    <p>Ish joyi: Birja</p>
+
+    <button onclick="toggleSection('tasks2')">Vazifalari</button>
+    <button onclick="toggleSection('done2')">Bajarilgan vazifalar</button>
+    <button onclick="toggleSection('overdue2')">Muddati o'tgan vazifalar</button>
+    <button onclick="toggleSection('form2')">+</button>
+
+    <div id="tasks2" class="task-list hidden">
+      <p>📌 Vazifa nomi | ⏰ Muddati | 📍 Joyi</p>
+    </div>
+    <div id="done2" class="task-list hidden">
+      <p>✅ Bajarilgan vazifalar ro'yxati</p>
+    </div>
+    <div id="overdue2" class="task-list hidden">
+      <p>⚠️ Muddati o'tgan vazifalar ro'yxati</p>
+    </div>
+    <div id="form2" class="task-form hidden">
+      <input placeholder="Vazifa nomi">
+      <input type="date">
+      <input placeholder="Bajariladigan joyi">
+      <button>Saqlash</button>
+    </div>
+  </div>
 
   <!-- Asosiy tugmalar -->
   <div class="main-buttons">
