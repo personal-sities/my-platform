@@ -123,3 +123,87 @@ body.login-page {
 .link-muted {
   margin-top: 12px;
 }
+
+/* ===== DASHBOARD ===== */
+
+.dashboard-page {
+  background: #f4f6fb;
+  min-height: 100vh;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* HEADER */
+.dashboard-header {
+  background: #fff;
+  padding: 16px 30px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.dashboard-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 18px;
+  font-weight: 600;
+  color: #1f5ea8;
+}
+
+.dashboard-brand img {
+  height: 36px;
+}
+
+/* MAIN BUTTONS */
+.dashboard-main {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-top: 80px;
+}
+
+.dash-card {
+  width: 260px;
+  height: 180px;
+  background: #fff;
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.08);
+  text-decoration: none;
+  color: #1f5ea8;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  transition: 0.25s;
+}
+
+.dash-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 18px 40px rgba(0,0,0,0.12);
+}
+
+.dash-icon {
+  font-size: 48px;
+  margin-bottom: 14px;
+}
+
+.dash-title {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+}
+
+/* LOGOUT */
+.logout-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #1f5ea8;
+  color: #fff;
+  padding: 10px 18px;
+  border-radius: 10px;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+
