@@ -1,43 +1,228 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <title>Universitetlar monitoringi</title>
-  <link rel="stylesheet" href="css/style.css">
+<meta charset="UTF-8" />
+<title>Universitetlar monitoringi</title>
+
+<style>
+    :root{
+        --blue:#1f5fa8;
+        --border:#1f5fa8;
+        --bg:#f4f7fb;
+        --green:#1fa84a;
+        --red:#c0392b;
+        --orange:#d35400;
+    }
+
+    *{box-sizing:border-box;font-family:Arial, sans-serif}
+    body{margin:0;background:var(--bg)}
+
+    /* HEADER */
+    .header{
+        background:var(--blue);
+        color:#fff;
+        padding:15px 25px;
+        display:flex;
+        align-items:center;
+        gap:15px;
+    }
+    .logo{height:45px}
+    .header h1{font-size:22px;margin:0}
+
+    /* CONTAINER */
+    .container{padding:25px}
+
+    /* FILTER */
+    .filter{
+        margin-bottom:15px;
+        display:flex;
+        gap:10px;
+        align-items:center;
+    }
+    .filter input{
+        padding:8px;
+        width:250px;
+    }
+    .btn{
+        background:var(--blue);
+        color:#fff;
+        border:none;
+        padding:8px 14px;
+        border-radius:6px;
+        cursor:pointer;
+    }
+
+    /* TABLE */
+    table{
+        width:100%;
+        border-collapse:collapse;
+        background:#fff;
+    }
+    th,td{
+        border:2px solid var(--border);
+        padding:10px;
+        text-align:center;
+        vertical-align:middle;
+    }
+    th{
+        color:var(--blue);
+        font-weight:bold;
+        background:#f9fbff;
+    }
+    .univer{
+        font-weight:bold;
+        color:var(--blue);
+        text-align:left;
+    }
+
+    /* STATUS */
+    .status{
+        cursor:pointer;
+        min-height:22px;
+    }
+    .green{color:var(--green)}
+    .red{color:var(--red)}
+    .orange{color:var(--orange)}
+
+    select{
+        width:100%;
+        padding:5px;
+    }
+
+    /* COMMENT */
+    .comment{
+        width:100%;
+        border:none;
+        outline:none;
+        padding:5px;
+    }
+
+    /* FOOTER */
+    .footer{
+        margin-top:15px;
+        display:flex;
+        justify-content:space-between;
+    }
+
+    /* MODAL */
+    .modal{
+        position:fixed;
+        inset:0;
+        background:rgba(0,0,0,.4);
+        display:none;
+        align-items:center;
+        justify-content:center;
+    }
+    .modal-box{
+        background:#fff;
+        padding:20px;
+        width:350px;
+        border-radius:10px;
+    }
+    .modal-box h3{margin-top:0}
+    .modal-box input{
+        width:100%;
+        margin-bottom:10px;
+        padding:8px;
+    }
+</style>
 </head>
 <body>
-<header class="main-header">
-  <div class="header-left">
-    <img src="images/studentcall.png" class="logo-header" alt="logo">
-    <span>STUDENT CALL</span>
-  </div>
-</header>
 
-<header>Universitetlar monitoringi</header>
-
-<div class="container">
-  <input id="search" placeholder="Universitet nomi..." onkeyup="filterUniver()">
-
-  <button onclick="addUniver()">Univer qo‘shish +</button>
-  <button onclick="exportExcel(universities,'universitetlar.xlsx')">Excelga chiqarish</button>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Univer nomi</th>
-        <th>Tizimlashtirish</th>
-        <th>Koment</th>
-      </tr>
-    </thead>
-    <tbody id="univerTable"></tbody>
-  </table>
-
-  <a href="dashboard.html">⬅ Orqaga</a>
+<!-- HEADER -->
+<div class="header">
+    <img src="logo.png" class="logo">
+    <h1>Universitetlar monitoringi</h1>
 </div>
 
-<script src="libs/xlsx.full.min.js"></script>
-<script src="js/excel.js"></script>
-<script src="js/universities.js"></script>
+<div class="container">
+
+    <!-- FILTER -->
+    <div class="filter">
+        <input type="text" id="filterInput" placeholder="Universitet nomi bo‘yicha filtr">
+        <button class="btn" onclick="filterTable()">Filtr</button>
+    </div>
+
+    <!-- TABLE -->
+    <table id="table">
+        <thead>
+            <tr>
+                <th>Univer nomi</th>
+                <th>Taklif</th>
+                <th>Suhbat sanasi</th>
+                <th>Коммерческий предложение</th>
+                <th>Shartnoma</th>
+                <th>Ish boshlandi</th>
+                <th>Yakun</th>
+                <th>Koment</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- FOOTER -->
+    <div class="footer">
+        <button class="btn" onclick="history.back()">← Orqaga</button>
+        <button class="btn" onclick="openModal()">Univer qo‘shish +</button>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+    <div class="modal-box">
+        <h3>Universitet qo‘shish</h3>
+        <input id="univerName" placeholder="Universitet nomi">
+        <input id="startWork" placeholder="Ish boshlandi (AI Bot, Platforma...)">
+        <button class="btn" onclick="addUniver()">Qo‘shish</button>
+    </div>
+</div>
+
+<script>
+const tbody = document.querySelector("tbody");
+
+function statusCell(){
+    return `
+    <select onchange="this.parentElement.innerHTML=this.value">
+        <option value=""></option>
+        <option class="green">Berildi</option>
+        <option class="orange">O‘ylab ko‘rmoqda</option>
+        <option class="red">Rad etildi</option>
+    </select>`;
+}
+
+function addUniver(){
+    const name = univerName.value.trim();
+    const work = startWork.value.trim();
+    if(!name) return alert("Universitet nomini kiriting");
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+        <td class="univer">${name}</td>
+        <td class="status">${statusCell()}</td>
+        <td></td>
+        <td class="status">${statusCell()}</td>
+        <td class="status">${statusCell()}</td>
+        <td>${work}</td>
+        <td class="status">${statusCell()}</td>
+        <td><input class="comment" placeholder="Koment..."></td>
+    `;
+    tbody.appendChild(tr);
+    modal.style.display="none";
+    univerName.value="";
+    startWork.value="";
+}
+
+function openModal(){ modal.style.display="flex"; }
+
+function filterTable(){
+    const val = filterInput.value.toLowerCase();
+    [...tbody.rows].forEach(r=>{
+        r.style.display = r.cells[0].innerText.toLowerCase().includes(val) ? "" : "none";
+    });
+}
+
+modal.onclick=e=>{ if(e.target===modal) modal.style.display="none"; }
+</script>
+
 </body>
 </html>
-
