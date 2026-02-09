@@ -3,23 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <title>Student Call | Login</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
-<body>
+<body class="login-page">
 
-  <div class="login-page">
-    <img src="logo.png" alt="Student Call" class="logo">
+  <!-- HEADER -->
+  <header class="main-header">
+    <div class="header-left">
+      <img src="images/studentcall.png" class="logo-header" alt="Student Call">
+      <span>STUDENT CALL</span>
+    </div>
+  </header>
 
-    <h1>STUDENT CALL</h1>
-    <p class="subtitle">
-      Platformadan foydalanishingiz uchun login va parolni kiriting!
-    </p>
+  <!-- LOGIN CARD -->
+  <main class="login-wrap">
+    <div class="login-card">
+      <h2>Kirish</h2>
+      <p class="subtitle">Platformadan foydalanish uchun login va parolni kiriting</p>
 
-    <input type="text" placeholder="Login">
-    <input type="password" placeholder="Parol">
+      <input id="login" placeholder="Login">
+      <input id="password" type="password" placeholder="Parol">
 
-    <a href="#" class="forgot">Login yoki parolni unutdingizmi?</a>
-  </div>
+      <button class="btn-primary" onclick="doLogin()">Kirish</button>
 
+      <a class="link-muted" href="reset.html">Login yoki parolni unutdingizmi?</a>
+    </div>
+  </main>
+
+  <script src="js/auth.js"></script>
 </body>
 </html>
