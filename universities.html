@@ -104,6 +104,9 @@ th{color:var(--blue);background:#f9fbff}
     gap:10px;
     justify-content:flex-end;
 }
+.status-green{background:#e6f7e6;border-left:4px solid #28a745;padding-left:4px}
+.status-red{background:#fdeaea;border-left:4px solid #dc3545;padding-left:4px}
+.status-yellow{background:#fff8e1;border-left:4px solid #ffc107;padding-left:4px}
 </style>
 </head>
 <body>
@@ -131,7 +134,6 @@ th{color:var(--blue);background:#f9fbff}
             <th>Ish boshlandi</th>
             <th>Yakun</th>
             <th>Koment</th>
-            <th>Qo‘shimcha</th>
             <th>Tahrirlash</th>
         </tr>
         </thead>
@@ -169,27 +171,51 @@ th{color:var(--blue);background:#f9fbff}
 </div>
 
 <script>
-const tbody=document.querySelector("tbody");
+const tbody = document.querySelector("tbody");
 
+/* ===== SAQLASH ===== */
 function saveData(){
     localStorage.setItem("universities", tbody.innerHTML);
 }
 
-function lockRow(tr,lock=true){
-    tr.querySelectorAll("input").forEach(i=>{
-        if(i.type!=="text") i.disabled=lock;
+/* ===== STATUS RANGLARI ===== */
+function updateStatusColors(tr){
+    tr.querySelectorAll("label").forEach(l=>{
+        l.classList.remove("status-green","status-red","status-yellow");
+        const i = l.querySelector("input");
+        if(!i || !i.checked) return;
+
+        const t = l.innerText.toLowerCase();
+
+        if(t.includes("berildi") || t.includes("rozi") || t.includes("yakunlandi") || t.includes("tuzildi")){
+            l.classList.add("status-green");
+        }
+        else if(t.includes("rad") || t.includes("tuzilmadi")){
+            l.classList.add("status-red");
+        }
+        else if(t.includes("o‘ylab") || t.includes("jarayonda")){
+            l.classList.add("status-yellow");
+        }
     });
 }
 
+/* ===== QATORNI QULFLASH ===== */
+function lockRow(tr, lock=true){
+    tr.querySelectorAll("input").forEach(i=>{
+        if(i.type !== "text") i.disabled = lock;
+    });
+}
+
+/* ===== UNIVERSITET QO‘SHISH ===== */
 function addUniver(){
-    const name=addName.value.trim();
-    const work=addWork.value.trim();
+    const name = addName.value.trim();
+    const work = addWork.value.trim();
     if(!name) return alert("Universitet nomini kiriting");
 
-    const id=Date.now();
+    const id = Date.now();
+    const tr = document.createElement("tr");
 
-    const tr=document.createElement("tr");
-    tr.innerHTML=`
+    tr.innerHTML = `
 <td class="univer">${name}</td>
 
 <td class="status-box">
@@ -219,10 +245,10 @@ function addUniver(){
 </td>
 
 <td><input class="comment" placeholder="Koment..."></td>
-<td><input class="comment" placeholder="Qo‘shimcha..."></td>
 
 <td><button class="btn" onclick="toggleEdit(this)">✏️ Tahrirlash</button></td>
 `;
+
     tbody.appendChild(tr);
     lockRow(tr,true);
     saveData();
@@ -232,45 +258,69 @@ function addUniver(){
     addWork.value="";
 }
 
+/* ===== TAHRIRLASH ===== */
 function toggleEdit(btn){
-    const tr=btn.closest("tr");
-    const edit=btn.dataset.edit==="1";
-    lockRow(tr,edit);
-    btn.dataset.edit=edit?"0":"1";
-    btn.textContent=edit?"✏️ Tahrirlash":"💾 Saqlash";
+    const tr = btn.closest("tr");
+    const edit = btn.dataset.edit === "1";
+
+    lockRow(tr, edit);
+    btn.dataset.edit = edit ? "0" : "1";
+    btn.textContent = edit ? "✏️ Tahrirlash" : "💾 Saqlash";
+
+    updateStatusColors(tr);
     saveData();
 }
 
+/* ===== O‘CHIRISH ===== */
 function deleteUniver(){
-    const name=deleteName.value.trim().toLowerCase();
+    const name = deleteName.value.trim().toLowerCase();
     [...tbody.rows].forEach(r=>{
-        if(r.cells[0].innerText.toLowerCase()===name) r.remove();
+        if(r.cells[0].innerText.toLowerCase() === name){
+            r.remove();
+        }
     });
     saveData();
     deleteModal.style.display="none";
     deleteName.value="";
 }
 
+/* ===== FILTR ===== */
 function filterTable(){
-    const v=filterInput.value.toLowerCase();
+    const v = filterInput.value.toLowerCase();
     [...tbody.rows].forEach(r=>{
-        r.style.display=r.cells[0].innerText.toLowerCase().includes(v)?"":"none";
+        r.style.display = r.cells[0].innerText.toLowerCase().includes(v) ? "" : "none";
     });
 }
 
-function openAdd(){addModal.style.display="flex"}
-function openDelete(){deleteModal.style.display="flex"}
+/* ===== MODAL ===== */
+function openAdd(){ addModal.style.display="flex" }
+function openDelete(){ deleteModal.style.display="flex" }
 
-addModal.onclick=e=>{if(e.target===addModal)addModal.style.display="none"}
-deleteModal.onclick=e=>{if(e.target===deleteModal)deleteModal.style.display="none"}
+addModal.onclick = e => { if(e.target===addModal) addModal.style.display="none" }
+deleteModal.onclick = e => { if(e.target===deleteModal) deleteModal.style.display="none" }
 
-window.onload=()=>{
-    const d=localStorage.getItem("universities");
-    if(d) tbody.innerHTML=d;
+/* ===== SAHIFA YUKLANGANDA ===== */
+window.onload = ()=>{
+    const d = localStorage.getItem("universities");
+    if(d){
+        tbody.innerHTML = d;
+        [...tbody.rows].forEach(r=>{
+            lockRow(r,true);
+            updateStatusColors(r);
+        });
+    }
 };
-tbody.addEventListener("change",saveData);
-tbody.addEventListener("input",saveData);
+
+/* ===== STATUS O‘ZGARSA ===== */
+tbody.addEventListener("change", e=>{
+    const tr = e.target.closest("tr");
+    if(tr) updateStatusColors(tr);
+    saveData();
+});
+tbody.addEventListener("input", saveData);
 </script>
+
 
 </body>
 </html>
+
