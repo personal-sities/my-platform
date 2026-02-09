@@ -1,170 +1,164 @@
 <!DOCTYPE html>
 <html lang="uz">
 <head>
-  <meta charset="UTF-8">
-  <title>Hodimlar nazorati</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 20px;
-    }
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    .employee-card {
-      background: #fff;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      padding: 15px;
-      margin-bottom: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-    }
-    .employee-card h3 {
-      margin: 0;
-    }
-    .employee-card p {
-      margin: 5px 0;
-    }
-    .employee-card button {
-      margin: 5px;
-      padding: 8px 12px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-      background: #007bff;
-      color: #fff;
-    }
-    .employee-card button:hover {
-      background: #0056b3;
-    }
-    .hidden {
-      display: none;
-    }
-    .task-list, .task-form, .employee-form {
-      margin-top: 10px;
-      padding: 10px;
-      border: 1px solid #ddd;
-      border-radius: 5px;
-      background: #fafafa;
-    }
-    input {
-      display: block;
-      margin: 5px 0;
-      padding: 8px;
-      width: 95%;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    .main-buttons {
-      text-align: center;
-      margin-top: 20px;
-    }
-    .main-buttons button {
-      margin: 10px;
-      padding: 10px 15px;
-      background: #28a745;
-      color: #fff;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .main-buttons button:hover {
-      background: #1e7e34;
-    }
-    .back-btn {
-      background: #dc3545 !important;
-    }
-    .back-btn:hover {
-      background: #a71d2a !important;
-    }
-  </style>
+<meta charset="UTF-8">
+<title>Hodimlar nazorati</title>
+
+<style>
+body{
+    margin:0;
+    font-family:Segoe UI;
+    background:#f2f4f7;
+}
+
+/* HEADER */
+.header{
+    background:#2b5f98;
+    color:white;
+    padding:30px;
+    font-size:32px;
+    font-weight:bold;
+    text-align:center;
+}
+
+/* CARD */
+.container{
+    width:85%;
+    margin:40px auto;
+}
+
+.card{
+    background:white;
+    border:3px solid #2b5f98;
+    border-radius:14px;
+    padding:25px;
+    margin-bottom:30px;
+}
+
+.name{
+    font-size:26px;
+    font-weight:bold;
+    color:#2b5f98;
+}
+
+.info{
+    margin-top:6px;
+    font-size:18px;
+}
+
+.buttons{
+    margin-top:20px;
+}
+
+.btn{
+    background:#2b5f98;
+    color:white;
+    border:none;
+    padding:12px 24px;
+    border-radius:10px;
+    font-size:16px;
+    margin-right:10px;
+    cursor:pointer;
+}
+
+.plus{
+    float:right;
+    border-radius:50%;
+    width:45px;
+    height:45px;
+    font-size:22px;
+}
+
+.section{
+    display:none;
+    margin-top:20px;
+    border-top:1px solid #ddd;
+    padding-top:15px;
+}
+
+.bottom{
+    text-align:center;
+    margin:30px 0 50px;
+}
+
+.green{background:#28a745;}
+.red{background:#dc3545;}
+</style>
 </head>
+
 <body>
 
-  <h1>Hodimlar nazorati</h1>
+<div class="header">Hodimlar nazorati</div>
 
-  <!-- Hodim card -->
-  <div class="employee-card">
-    <h3>Jumatullayev Jonibek</h3>
-    <p>Lavozimi: SMS/CRM</p>
-    <p>Ish joyi: Birja</p>
+<div class="container" id="staffContainer"></div>
 
-    <button onclick="toggleSection('tasks1')">Vazifalari</button>
-    <button onclick="toggleSection('done1')">Bajarilgan vazifalar</button>
-    <button onclick="toggleSection('overdue1')">Muddati o'tgan vazifalar</button>
-    <button onclick="toggleSection('form1')">+</button>
+<div class="bottom">
+    <button class="btn green" onclick="addStaff()">Hodim qo'shish +</button>
+    <button class="btn red" onclick="history.back()">Orqaga</button>
+</div>
 
-    <div id="tasks1" class="task-list hidden">
-      <p>📌 Vazifa nomi | ⏰ Muddati | 📍 Joyi</p>
-    </div>
-    <div id="done1" class="task-list hidden">
-      <p>✅ Bajarilgan vazifalar ro'yxati</p>
-    </div>
-    <div id="overdue1" class="task-list hidden">
-      <p>⚠️ Muddati o'tgan vazifalar ro'yxati</p>
-    </div>
-    <div id="form1" class="task-form hidden">
-      <input placeholder="Vazifa nomi">
-      <input type="date">
-      <input placeholder="Bajariladigan joyi">
-      <button>Saqlash</button>
-    </div>
-  </div>
+<script>
 
-  <!-- Ikkinchi hodim card -->
-  <div class="employee-card">
-    <h3>Isroilov Isfandiyor</h3>
-    <p>Lavozimi: SMS/CRM</p>
-    <p>Ish joyi: Birja</p>
+function createStaff(name, role, place){
+    const card=document.createElement("div");
+    card.className="card";
 
-    <button onclick="toggleSection('tasks2')">Vazifalari</button>
-    <button onclick="toggleSection('done2')">Bajarilgan vazifalar</button>
-    <button onclick="toggleSection('overdue2')">Muddati o'tgan vazifalar</button>
-    <button onclick="toggleSection('form2')">+</button>
+    card.innerHTML=`
+        <div class="name">${name}</div>
+        <div class="info">Lavozimi: ${role}</div>
+        <div class="info">Ish joyi: ${place}</div>
 
-    <div id="tasks2" class="task-list hidden">
-      <p>📌 Vazifa nomi | ⏰ Muddati | 📍 Joyi</p>
-    </div>
-    <div id="done2" class="task-list hidden">
-      <p>✅ Bajarilgan vazifalar ro'yxati</p>
-    </div>
-    <div id="overdue2" class="task-list hidden">
-      <p>⚠️ Muddati o'tgan vazifalar ro'yxati</p>
-    </div>
-    <div id="form2" class="task-form hidden">
-      <input placeholder="Vazifa nomi">
-      <input type="date">
-      <input placeholder="Bajariladigan joyi">
-      <button>Saqlash</button>
-    </div>
-  </div>
+        <div class="buttons">
+            <button class="btn" onclick="toggle(this)">Vazifalari</button>
+            <button class="btn" onclick="toggle(this)">Bajarilgan vazifalar</button>
+            <button class="btn" onclick="toggle(this)">Muddati o'tgan vazifalar</button>
+            <button class="btn plus" onclick="addTask(this)">+</button>
+        </div>
 
-  <!-- Asosiy tugmalar -->
-  <div class="main-buttons">
-    <button onclick="toggleSection('employeeForm')">Hodim qo'shish +</button>
-    <button class="back-btn" onclick="goBack()">Orqaga</button>
-  </div>
+        <div class="section"></div>
+        <div class="section"></div>
+        <div class="section"></div>
+    `;
 
-  <!-- Hodim qo'shish formasi -->
-  <div id="employeeForm" class="employee-form hidden">
-    <input placeholder="Hodim ism familiyasi">
-    <input placeholder="Lavozimi">
-    <input placeholder="Ish joyi">
-    <button>Saqlash</button>
-  </div>
+    document.getElementById("staffContainer").appendChild(card);
+}
 
-  <script>
-    function toggleSection(id) {
-      const el = document.getElementById(id);
-      el.classList.toggle('hidden');
+function toggle(btn){
+    const card=btn.closest(".card");
+    const btns=[...card.querySelectorAll(".buttons .btn")];
+    const sections=card.querySelectorAll(".section");
+    const index=btns.indexOf(btn);
+    if(index<3){
+        sections[index].style.display =
+        sections[index].style.display==="block"?"none":"block";
     }
-    function goBack() {
-      window.history.back();
-    }
-  </script>
+}
+
+function addTask(btn){
+    const name=prompt("Vazifa nomi:");
+    const date=prompt("Bajarish muddati:");
+    const place=prompt("Bajariladigan joyi:");
+    if(!name) return;
+
+    const sec=btn.closest(".card").querySelector(".section");
+    sec.style.display="block";
+    sec.innerHTML+=`<p><b>${name}</b> | ${date} | ${place}</p>`;
+}
+
+function addStaff(){
+    const name=prompt("Ism familiya:");
+    const role=prompt("Lavozimi:");
+    const place=prompt("Ish joyi:");
+    if(!name) return;
+
+    createStaff(name,role,place);
+}
+
+/* default */
+createStaff("Jumatullayev Jonibek","SMS/CRM","Birja");
+createStaff("Isroilov Isfandiyor","SMS/CRM","Birja");
+
+</script>
 
 </body>
 </html>
