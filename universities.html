@@ -79,7 +79,6 @@ th{color:var(--blue);background:#f9fbff}
     align-items:center;
 }
 
-/* MODAL */
 .modal{
     position:fixed;
     inset:0;
@@ -121,7 +120,7 @@ th{color:var(--blue);background:#f9fbff}
         <button class="btn" onclick="filterTable()">Filtr</button>
     </div>
 
-    <table id="table">
+    <table>
         <thead>
         <tr>
             <th>Univer nomi</th>
@@ -132,6 +131,8 @@ th{color:var(--blue);background:#f9fbff}
             <th>Ish boshlandi</th>
             <th>Yakun</th>
             <th>Koment</th>
+            <th>Qo‘shimcha</th>
+            <th>Tahrirlash</th>
         </tr>
         </thead>
         <tbody></tbody>
@@ -146,23 +147,21 @@ th{color:var(--blue);background:#f9fbff}
     </div>
 </div>
 
-<!-- ADD MODAL -->
 <div class="modal" id="addModal">
     <div class="modal-box">
         <h3>Universitet qo‘shish</h3>
         <input id="addName" placeholder="Universitet nomi">
-        <input id="addWork" placeholder="Ish boshlandi (AI Bot, Platforma...)">
+        <input id="addWork" placeholder="Ish boshlandi">
         <div class="modal-actions">
             <button class="btn" onclick="addUniver()">Qo‘shish</button>
         </div>
     </div>
 </div>
 
-<!-- DELETE MODAL -->
 <div class="modal" id="deleteModal">
     <div class="modal-box">
         <h3>Universitet o‘chirish</h3>
-        <input id="deleteName" placeholder="O‘chiriladigan univer nomi">
+        <input id="deleteName" placeholder="Universitet nomi">
         <div class="modal-actions">
             <button class="btn" onclick="deleteUniver()">O‘chirish</button>
         </div>
@@ -176,65 +175,80 @@ function saveData(){
     localStorage.setItem("universities", tbody.innerHTML);
 }
 
+function lockRow(tr,lock=true){
+    tr.querySelectorAll("input").forEach(i=>{
+        if(i.type!=="text") i.disabled=lock;
+    });
+}
 
 function addUniver(){
     const name=addName.value.trim();
     const work=addWork.value.trim();
     if(!name) return alert("Universitet nomini kiriting");
 
+    const id=Date.now();
+
     const tr=document.createElement("tr");
     tr.innerHTML=`
-        <td class="univer">${name}</td>
+<td class="univer">${name}</td>
 
-        <td class="status-box">
-            <label><input type="checkbox"> Berildi</label>
-            <label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
-            <label><input type="checkbox"> Rad etildi</label>
-        </td>
+<td class="status-box">
+<label><input type="checkbox"> Berildi</label>
+<label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
+</td>
 
-        <td><input type="date"></td>
+<td><input type="date"></td>
 
-        <td class="status-box">
-            <label><input type="checkbox"> Berildi</label>
-            <label><input type="checkbox"> Rozi</label>
-            <label><input type="checkbox"> Rad etildi</label>
-            <label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
-        </td>
+<td class="status-box">
+<label><input type="checkbox"> Berildi</label>
+<label><input type="checkbox"> Rozi</label>
+<label><input type="checkbox"> Rad etildi</label>
+<label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
+</td>
 
-        <td class="status-box">
-            <label><input type="radio" name="s${Date.now()}"> Tuzildi</label>
-            <label><input type="radio" name="s${Date.now()}"> Tuzilmadi</label>
-        </td>
+<td class="status-box">
+<label><input type="radio" name="s${id}"> Tuzildi</label>
+<label><input type="radio" name="s${id}"> Tuzilmadi</label>
+</td>
 
-        <td>${work}</td>
+<td>${work}</td>
 
-        <td class="status-box">
-            <label><input type="radio" name="y${Date.now()}"> Yakunlandi</label>
-            <label><input type="radio" name="y${Date.now()}"> Jarayonda</label>
-        </td>
+<td class="status-box">
+<label><input type="radio" name="y${id}"> Yakunlandi</label>
+<label><input type="radio" name="y${id}"> Jarayonda</label>
+</td>
 
-        <td><input class="comment" placeholder="Koment..."></td>
-    `;
+<td><input class="comment" placeholder="Koment..."></td>
+<td><input class="comment" placeholder="Qo‘shimcha..."></td>
+
+<td><button class="btn" onclick="toggleEdit(this)">✏️ Tahrirlash</button></td>
+`;
     tbody.appendChild(tr);
+    lockRow(tr,true);
+    saveData();
+
     addModal.style.display="none";
     addName.value="";
     addWork.value="";
+}
+
+function toggleEdit(btn){
+    const tr=btn.closest("tr");
+    const edit=btn.dataset.edit==="1";
+    lockRow(tr,edit);
+    btn.dataset.edit=edit?"0":"1";
+    btn.textContent=edit?"✏️ Tahrirlash":"💾 Saqlash";
     saveData();
 }
 
 function deleteUniver(){
     const name=deleteName.value.trim().toLowerCase();
-    let found=false;
     [...tbody.rows].forEach(r=>{
-        if(r.cells[0].innerText.toLowerCase()===name){
-            r.remove(); 
-            found=true;
-        }
+        if(r.cells[0].innerText.toLowerCase()===name) r.remove();
     });
-    if(!found) alert("Universitet topilmadi");
+    saveData();
     deleteModal.style.display="none";
     deleteName.value="";
-    saveData(); // 🔴 MUHIM
 }
 
 function filterTable(){
@@ -249,18 +263,14 @@ function openDelete(){deleteModal.style.display="flex"}
 
 addModal.onclick=e=>{if(e.target===addModal)addModal.style.display="none"}
 deleteModal.onclick=e=>{if(e.target===deleteModal)deleteModal.style.display="none"}
-window.onload = function(){
-    const data = localStorage.getItem("universities");
-    if(data){
-        tbody.innerHTML = data;
-    }
-};
 
-tbody.addEventListener("change", saveData);
-tbody.addEventListener("input", saveData);
+window.onload=()=>{
+    const d=localStorage.getItem("universities");
+    if(d) tbody.innerHTML=d;
+};
+tbody.addEventListener("change",saveData);
+tbody.addEventListener("input",saveData);
 </script>
 
 </body>
 </html>
-
-
