@@ -92,7 +92,11 @@ function render(){
 
 function tasksHTML(tasks,status,index){
     return tasks.filter(t=>t.status===status).map((t,ti)=>{
-        return `<p>${t.name} ${status==0?`<button onclick="done(${index},${ti})">Bajarildi</button>`:""}</p>`;
+        return `
+        <p>
+            ${t.name} | ${t.place} | ${t.date}
+            ${status==0?`<button onclick="done(${index},${ti})">Bajarildi</button>`:""}
+        </p>`;
     }).join("");
 }
 
@@ -111,15 +115,24 @@ function addStaff(){
 }
 
 function addTask(i){
-    const name=prompt("Vazifa nomi:");
-    const date=prompt("Muddat YYYY-MM-DD:");
+    const name = prompt("Vazifa nomi:");
+    const date = prompt("Muddat YYYY-MM-DD:");
+    const place = prompt("Bajariladigan joyi:");
+
     if(!name) return;
 
-    const now=new Date().toISOString().split("T")[0];
-    let status = date<now ? 2 : 0;
+    const now = new Date().toISOString().split("T")[0];
+    let status = date < now ? 2 : 0;
 
-    staff[i].tasks.push({name,date,status});
-    save(); render();
+    staff[i].tasks.push({
+        name: name,
+        date: date,
+        place: place,
+        status: status
+    });
+
+    save();
+    render();
 }
 
 function done(i,ti){
@@ -139,5 +152,6 @@ render();
 </script>
 </body>
 </html>
+
 
 
