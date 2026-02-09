@@ -20,9 +20,14 @@ function doLogin() {
 function resetData() {
   const u = JSON.parse(localStorage.getItem("user"));
 
-  if (oldLogin.value === u.login && oldPass.value === u.password) {
+  if (
+    oldLogin.value === u.login &&
+    oldPass.value === u.password
+  ) {
+    // 🔥 MANA SHU JOY TO‘G‘RILANDI
     u.login = newLogin.value || u.login;
     u.password = newPass.value || u.password;
+
     localStorage.setItem("user", JSON.stringify(u));
     alert("Yangilandi");
     location.href = "index.html";
