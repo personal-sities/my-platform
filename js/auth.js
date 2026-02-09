@@ -6,8 +6,8 @@ if (!localStorage.getItem("user")) {
 }
 
 function doLogin() {
-  const l = login.value;
-  const p = password.value;
+  const l = document.getElementById("login").value;
+  const p = document.getElementById("password").value;
   const u = JSON.parse(localStorage.getItem("user"));
 
   if (l === u.login && p === u.password) {
@@ -20,9 +20,14 @@ function doLogin() {
 function resetData() {
   const u = JSON.parse(localStorage.getItem("user"));
 
-  if (oldLogin.value === u.login && oldPass.value === u.password) {
-    u.login = newLogin.value  u.login;
-    u.password = newPass.value  u.password;
+  if (
+    oldLogin.value === u.login &&
+    oldPass.value === u.password
+  ) {
+    // agar bo‘sh bo‘lsa eski qiymat qoladi
+    u.login = newLogin.value || u.login;
+    u.password = newPass.value || u.password;
+
     localStorage.setItem("user", JSON.stringify(u));
     alert("Yangilandi");
     location.href = "index.html";
