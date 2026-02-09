@@ -3,71 +3,114 @@
 <head>
   <meta charset="UTF-8">
   <title>Hodimlar nazorati</title>
-  <link rel="stylesheet" href="css/style.css">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .employee-card {
+      background: #fff;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .employee-card h3 {
+      margin: 0;
+    }
+    .employee-card p {
+      margin: 5px 0;
+    }
+    .employee-card button {
+      margin: 5px;
+      padding: 8px 12px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background: #007bff;
+      color: #fff;
+    }
+    .employee-card button:hover {
+      background: #0056b3;
+    }
+    .hidden {
+      display: none;
+    }
+    .task-list, .task-form, .employee-form {
+      margin-top: 10px;
+      padding: 10px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      background: #fafafa;
+    }
+    input {
+      display: block;
+      margin: 5px 0;
+      padding: 8px;
+      width: 95%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    .main-buttons {
+      text-align: center;
+      margin-top: 20px;
+    }
+    .main-buttons button {
+      margin: 10px;
+      padding: 10px 15px;
+      background: #28a745;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .main-buttons button:hover {
+      background: #1e7e34;
+    }
+    .back-btn {
+      background: #dc3545 !important;
+    }
+    .back-btn:hover {
+      background: #a71d2a !important;
+    }
+  </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="main-header">
-  <div class="header-left">
-    <img src="images/studentcall.png" class="logo-header" alt="logo">
-    <span>STUDENT CALL</span>
+  <h1>Hodimlar nazorati</h1>
+
+  <!-- Hozircha hodimlar yo'q, keyinchalik qo'shiladi -->
+
+  <!-- Asosiy tugmalar -->
+  <div class="main-buttons">
+    <button onclick="toggleSection('employeeForm')">Hodim qo'shish +</button>
+    <button class="back-btn" onclick="goBack()">Orqaga</button>
   </div>
-</header>
 
-<h2 class="page-title">Hodimlar nazorati</h2>
-
-<!-- ASOSIY QISM -->
-<div class="container">
-
-  <!-- Hodimlar shu yerda chiqadi -->
-  <div id="staffList"></div>
-
-  <!-- Hodim qo‘shish tugmasi -->
-  <button class="add-employee-btn" onclick="openEmployeeModal()">
-    Hodim qo‘shish +
-  </button>
-
-  <a href="dashboard.html" class="back-link">⬅ Orqaga</a>
-</div>
-
-<!-- ===================== -->
-<!-- HODIM QO‘SHISH MODAL -->
-<!-- ===================== -->
-<div id="employeeModal" class="modal">
-  <div class="modal-content">
-    <h3>Hodim qo‘shish</h3>
-
-    <input id="empName" type="text" placeholder="Ism familiyasi">
-    <input id="empJob" type="text" placeholder="Lavozimi">
-    <input id="empPlace" type="text" placeholder="Ish joyi">
-
-    <div class="modal-actions">
-      <button class="emp-btn" onclick="addStaff()">Saqlash</button>
-      <button class="cancel-btn" onclick="closeEmployeeModal()">Bekor qilish</button>
-    </div>
+  <!-- Hodim qo'shish formasi -->
+  <div id="employeeForm" class="employee-form hidden">
+    <input placeholder="Hodim ism familiyasi">
+    <input placeholder="Lavozimi">
+    <input placeholder="Ish joyi">
+    <button>Saqlash</button>
   </div>
-</div>
 
-<!-- ===================== -->
-<!-- VAZIFA QO‘SHISH MODAL -->
-<!-- ===================== -->
-<div id="taskModal" class="modal">
-  <div class="modal-content">
-    <h3>Vazifa qo‘shish</h3>
+  <script>
+    function toggleSection(id) {
+      const el = document.getElementById(id);
+      el.classList.toggle('hidden');
+    }
+    function goBack() {
+      window.history.back();
+    }
+  </script>
 
-    <input id="taskName" type="text" placeholder="Vazifa nomi">
-    <input id="taskDate" type="date">
-    <input id="taskPlace" type="text" placeholder="Vazifani bajarish joyi">
-
-    <div class="modal-actions">
-      <button class="emp-btn" onclick="addTask()">Saqlash</button>
-      <button class="cancel-btn" onclick="closeTaskModal()">Bekor qilish</button>
-    </div>
-  </div>
-</div>
-
-<!-- JS -->
-<script src="js/staff.js"></script>
 </body>
 </html>
