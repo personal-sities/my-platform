@@ -82,3 +82,44 @@ body.login-page {
   text-decoration: underline;
   font-size: 14px;
 }
+
+/* === LOGIN DESIGN (1-rasmga mos) === */
+
+.login-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 70px);
+  padding-top: 0;
+}
+
+.login-card {
+  width: 380px;
+  padding: 32px 30px;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+}
+
+.login-card h2 {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.login-card input {
+  background: #f1f4f9;
+  border: 1px solid #e1e5ee;
+}
+
+.login-card input:focus {
+  background: #fff;
+}
+
+.btn-primary {
+  margin-top: 6px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.link-muted {
+  margin-top: 12px;
+}
