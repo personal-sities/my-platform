@@ -6,50 +6,45 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+
 <header class="main-header">
   <div class="header-left">
-    <img src="images/studentcall.png" class="logo-header" alt="logo">
     <span>STUDENT CALL</span>
   </div>
 </header>
-<header>Hodimlar nazorati</header>
+
+<h2 class="page-title">Hodimlar nazorati</h2>
 
 <div class="container">
-
-  <!-- Hodim kartalari shu yerga chiqadi -->
   <div id="staffList"></div>
 
-  <!-- Hodim qo‘shish -->
   <button class="add-employee-btn" onclick="openEmployeeModal()">
     Hodim qo‘shish +
   </button>
-
-  <a href="dashboard.html">⬅ Orqaga</a>
-</div>
-<script src="js/staff.js"></script>
-  <!-- Vazifa qo‘shish -->
-<div id="taskModal" class="modal">
-  <div class="modal-content">
-    <h3>Vazifa qo‘shish</h3>
-    <input placeholder="Vazifa nomi">
-    <input type="date">
-    <input placeholder="Vazifani bajarish joyi">
-    <button class="emp-btn" onclick="closeTaskModal()">Saqlash</button>
-  </div>
 </div>
 
 <!-- Hodim qo‘shish -->
 <div id="employeeModal" class="modal">
   <div class="modal-content">
     <h3>Hodim qo‘shish</h3>
-    <input placeholder="Ism familiyasi">
-    <input placeholder="Lavozimi">
-    <input placeholder="Ish joyi">
-    <button class="emp-btn" onclick="closeEmployeeModal()">Saqlash</button>
+    <input id="empName" placeholder="Ism familiyasi">
+    <input id="empJob" placeholder="Lavozimi">
+    <input id="empPlace" placeholder="Ish joyi">
+    <button class="emp-btn" onclick="addStaff()">Saqlash</button>
   </div>
 </div>
 
+<!-- Vazifa qo‘shish -->
+<div id="taskModal" class="modal">
+  <div class="modal-content">
+    <h3>Vazifa qo‘shish</h3>
+    <input id="taskName" placeholder="Vazifa nomi">
+    <input id="taskDate" type="date">
+    <input id="taskPlace" placeholder="Bajarish joyi">
+    <button class="emp-btn" onclick="addTask()">Saqlash</button>
+  </div>
+</div>
+
+<script src="js/staff.js"></script>
 </body>
 </html>
-
-
