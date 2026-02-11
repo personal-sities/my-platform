@@ -171,6 +171,20 @@ th{color:var(--blue);background:#f9fbff}
 </div>
 
 <script>
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGtujsdoI22AT-5wt3Hq4RpU3AZ8JGY2P0ztVhSp8CslDqsnOr3ggcgSmyezZn1hiM0g/exec";
+
+function sendToSheet(data){
+    fetch(SCRIPT_URL,{
+        method:"POST",
+        body:JSON.stringify(data),
+        headers:{
+            "Content-Type":"application/json"
+        }
+    }).catch(err=>console.log("Sheet error:",err));
+}
+
+    
 const tbody = document.querySelector("tbody");
 
 /* ===== SAQLASH ===== */
@@ -255,6 +269,15 @@ function addUniver(){
     lockRow(tr,true);
     saveData();
 
+    // 🔥 GOOGLE SHEETGA YUBORISH
+    sendToSheet({
+        page:"university_add",
+        formData:{
+            university:name,
+            work_started:work
+        }
+    });
+
     addModal.style.display="none";
     addName.value="";
     addWork.value="";
@@ -276,11 +299,21 @@ function toggleEdit(btn){
 /* ===== O‘CHIRISH ===== */
 function deleteUniver(){
     const name = deleteName.value.trim().toLowerCase();
+
     [...tbody.rows].forEach(r=>{
         if(r.cells[0].innerText.toLowerCase() === name){
+
+            sendToSheet({
+                page:"university_delete",
+                formData:{
+                    university:r.cells[0].innerText
+                }
+            });
+
             r.remove();
         }
     });
+
     saveData();
     deleteModal.style.display="none";
     deleteName.value="";
@@ -316,15 +349,29 @@ window.onload = ()=>{
 /* ===== STATUS O‘ZGARSA ===== */
 tbody.addEventListener("change", e=>{
     const tr = e.target.closest("tr");
-    if(tr) updateStatusColors(tr);
+    if(!tr) return;
+
+    updateStatusColors(tr);
     saveData();
+
+    const university = tr.cells[0].innerText;
+
+    sendToSheet({
+        page:"university_update",
+        formData:{
+            university: university,
+            action:"status_changed"
+        }
+    });
 });
+
 tbody.addEventListener("input", saveData);
 </script>
 
 
 </body>
 </html>
+
 
 
 
