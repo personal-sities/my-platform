@@ -60,6 +60,19 @@ body{
 
 <script>
 
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGtujsdoI22AT-5wt3Hq4RpU3AZ8JGY2P0ztVhSp8CslDqsnOr3ggcgSmyezZn1hiM0g/exec";
+
+function sendToSheet(data){
+    fetch(SCRIPT_URL,{
+        method:"POST",
+        body:JSON.stringify(data),
+        headers:{
+            "Content-Type":"application/json"
+        }
+    }).catch(err=>console.log("Sheet error:",err));
+}
+
+
 let staff = JSON.parse(localStorage.getItem("staff")) || [];
 
 function save(){
@@ -110,25 +123,43 @@ function addStaff(){
     const role=prompt("Lavozimi:");
     const place=prompt("Ish joyi:");
     if(!name) return;
-    staff.push({name,role,place,tasks:[]});
-    save(); render();
-}
 
+    const newStaff = {name,role,place,tasks:[]};
+    staff.push(newStaff);
+
+    sendToSheet({
+        page:"staff_add",
+        formData:newStaff
+    });
+
+    save(); 
+    render();
+}
+    
 function addTask(i){
     const name = prompt("Vazifa nomi:");
     const date = prompt("Muddat YYYY-MM-DD:");
     const place = prompt("Bajariladigan joyi:");
-
     if(!name) return;
 
     const now = new Date().toISOString().split("T")[0];
     let status = date < now ? 2 : 0;
 
-    staff[i].tasks.push({
+    const newTask = {
         name: name,
         date: date,
         place: place,
         status: status
+    };
+
+    staff[i].tasks.push(newTask);
+
+    sendToSheet({
+        page:"task_add",
+        formData:{
+            staff: staff[i].name,
+            ...newTask
+        }
     });
 
     save();
@@ -137,8 +168,19 @@ function addTask(i){
 
 function done(i,ti){
     staff[i].tasks[ti].status=1;
-    save(); render();
+
+    sendToSheet({
+        page:"task_done",
+        formData:{
+            staff: staff[i].name,
+            task: staff[i].tasks[ti].name
+        }
+    });
+
+    save(); 
+    render();
 }
+
 if(staff.length===0){
     staff=[
         {name:"Jumatullayev Jonibek",role:"SMS/CRM",place:"Birja",tasks:[]},
@@ -152,6 +194,7 @@ render();
 </script>
 </body>
 </html>
+
 
 
 
