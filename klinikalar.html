@@ -2,7 +2,7 @@
 <html lang="uz">
 <head>
 <meta charset="UTF-8">
-<title>Universitetlar monitoringi</title>
+<title>Klinikalar monitoringi</title>
 
 <style>
 :root{
@@ -113,20 +113,20 @@ th{color:var(--blue);background:#f9fbff}
 
 <div class="header">
     <img src="images/studentcall.png" class="logo">
-    <h1>Universitetlar monitoringi</h1>
+    <h1>Klinikalar monitoringi</h1>
 </div>
 
 <div class="container">
 
     <div class="filter">
-        <input id="filterInput" placeholder="Universitet nomi bo‘yicha filtr">
+        <input id="filterInput" placeholder="Klinika nomi bo‘yicha filtr">
         <button class="btn" onclick="filterTable()">Filtr</button>
     </div>
 
     <table>
         <thead>
         <tr>
-            <th>Univer nomi</th>
+            <th>Klinika nomi</th>
             <th>Taklif</th>
             <th>Suhbat sanasi</th>
             <th>Коммерческий предложение</th>
@@ -143,16 +143,16 @@ th{color:var(--blue);background:#f9fbff}
     <div class="footer">
         <button class="btn" onclick="history.back()">← Orqaga</button>
         <div>
-            <button class="btn" onclick="openDelete()">Univerni o‘chirish −</button>
-            <button class="btn" onclick="openAdd()">Univer qo‘shish +</button>
+            <button class="btn" onclick="openDelete()">Klinikani o‘chirish −</button>
+            <button class="btn" onclick="openAdd()">Klinika qo‘shish +</button>
         </div>
     </div>
 </div>
 
 <div class="modal" id="addModal">
     <div class="modal-box">
-        <h3>Universitet qo‘shish</h3>
-        <input id="addName" placeholder="Universitet nomi">
+        <h3>Klinika qo‘shish</h3>
+        <input id="addName" placeholder="Klinika nomi">
         <input id="addWork" placeholder="Ish boshlandi">
         <div class="modal-actions">
             <button class="btn" onclick="addUniver()">Qo‘shish</button>
@@ -162,8 +162,8 @@ th{color:var(--blue);background:#f9fbff}
 
 <div class="modal" id="deleteModal">
     <div class="modal-box">
-        <h3>Universitet o‘chirish</h3>
-        <input id="deleteName" placeholder="Universitet nomi">
+        <h3>Klinikani o‘chirish</h3>
+        <input id="deleteName" placeholder="Klinika nomi">
         <div class="modal-actions">
             <button class="btn" onclick="deleteUniver()">O‘chirish</button>
         </div>
@@ -224,7 +224,7 @@ function lockRow(tr, lock=true){
 function addUniver(){
     const name=addName.value.trim();
     const work=addWork.value.trim();
-    if(!name) return alert("Universitet nomini kiriting");
+    if(!name) return alert("Klinika nomini kiriting");
 
     const id=Date.now();
     const tr=document.createElement("tr");
@@ -371,6 +371,7 @@ tbody.addEventListener("input", saveData);
 
 </body>
 </html>
+
 
 
 
