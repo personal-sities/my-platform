@@ -1,4 +1,4 @@
-const SCRIPT_URL = "SIZNING_WEB_APP_URL_BU_YERGA";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGtujsdoI22AT-5wt3Hq4RpU3AZ8JGY2P0ztVhSp8CslDqsnOr3ggcgSmyezZn1hiM0g/exec";
 
 document.querySelectorAll(".sheet-form").forEach(form => {
   form.addEventListener("submit", function(e) {
