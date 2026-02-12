@@ -172,8 +172,13 @@ th{color:var(--blue);background:#f9fbff}
 
 <script>
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGtujsdoI22AT-5wt3Hq4RpU3AZ8JGY2P0ztVhSp8CslDqsnOr3ggcgSmyezZn1hiM0g/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz22BJQq97A7636E2q4jWYIcGD6Len1VByHWKsU-1Or3f7v2Wf6mXaUgV91wwIjJ5l4hQ/exec";
 
+const tbody = document.querySelector("tbody");
+
+/* =========================
+   GOOGLE SHEETGA YUBORISH
+========================= */
 function sendToSheet(data){
     fetch(SCRIPT_URL,{
         method:"POST",
@@ -181,95 +186,68 @@ function sendToSheet(data){
         headers:{
             "Content-Type":"application/json"
         }
-    }).catch(err=>console.log("Sheet error:",err));
+    })
+    .then(()=>loadFromSheet())
+    .catch(err=>console.log("Sheet error:",err));
 }
 
-    
-const tbody = document.querySelector("tbody");
+/* =========================
+   GOOGLE SHEETDAN O‘QISH
+========================= */
+function loadFromSheet(){
+    fetch(SCRIPT_URL)
+    .then(res=>res.json())
+    .then(data=>{
+        tbody.innerHTML="";
 
-/* ===== SAQLASH ===== */
-function saveData(){
-    localStorage.setItem("universities", tbody.innerHTML);
-}
+        if(!data.universities) return;
 
-/* ===== STATUS RANGLARI ===== */
-function updateStatusColors(tr){
-    tr.querySelectorAll("label").forEach(l=>{
-        l.classList.remove("status-green","status-red","status-yellow");
-        const i = l.querySelector("input");
-        if(!i || !i.checked) return;
+        data.universities.forEach(u=>{
+            const tr=document.createElement("tr");
 
-        const t = l.innerText.toLowerCase();
+            tr.innerHTML=`
+<td class="univer">${u[0]}</td>
 
-        if(t.includes("berildi") || t.includes("rozi") || t.includes("yakunlandi") || t.includes("tuzildi")){
-            l.classList.add("status-green");
-        }
-        else if(t.includes("rad") || t.includes("tuzilmadi")){
-            l.classList.add("status-red");
-        }
-        else if(t.includes("o‘ylab") || t.includes("jarayonda")){
-            l.classList.add("status-yellow");
-        }
+<td class="status-box"></td>
+
+<td><input type="date" value="${u[2]||""}"></td>
+
+<td class="status-box"></td>
+
+<td class="status-box"></td>
+
+<td>${u[1]||""}</td>
+
+<td class="status-box"></td>
+
+<td><input class="comment" value="${u[3]||""}" placeholder="Koment..."></td>
+
+<td>
+  <button class="btn" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
+</td>
+`;
+            tbody.appendChild(tr);
+        });
     });
 }
 
-/* ===== QATORNI QULFLASH ===== */
+/* =========================
+   QATOR QULFLASH
+========================= */
 function lockRow(tr, lock=true){
     tr.querySelectorAll("input").forEach(i=>{
         if(i.type !== "text") i.disabled = lock;
     });
 }
 
-/* ===== UNIVERSITET QO‘SHISH ===== */
+/* =========================
+   UNIVERSITET QO‘SHISH
+========================= */
 function addUniver(){
     const name=addName.value.trim();
     const work=addWork.value.trim();
     if(!name) return alert("Universitet nomini kiriting");
 
-    const id=Date.now();
-    const tr=document.createElement("tr");
-
-    tr.innerHTML=`
-<td class="univer">${name}</td>
-
-<td class="status-box">
-  <label><input type="checkbox"> Berildi</label>
-  <label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
-</td>
-
-<td><input type="date"></td>
-
-<td class="status-box">
-  <label><input type="checkbox"> Berildi</label>
-  <label><input type="checkbox"> Rozi</label>
-  <label><input type="checkbox"> Rad etildi</label>
-  <label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
-</td>
-
-<td class="status-box">
-  <label><input type="radio" name="s${id}"> Tuzildi</label>
-  <label><input type="radio" name="s${id}"> Tuzilmadi</label>
-</td>
-
-<td>${work}</td>
-
-<td class="status-box">
-  <label><input type="radio" name="y${id}"> Yakunlandi</label>
-  <label><input type="radio" name="y${id}"> Jarayonda</label>
-</td>
-
-<td><input class="comment" placeholder="Koment..."></td>
-
-<td>
-  <button class="btn" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
-</td>
-`;
-
-    tbody.appendChild(tr);
-    lockRow(tr,true);
-    saveData();
-
-    // 🔥 GOOGLE SHEETGA YUBORISH
     sendToSheet({
         page:"university_add",
         formData:{
@@ -283,7 +261,26 @@ function addUniver(){
     addWork.value="";
 }
 
-/* ===== TAHRIRLASH ===== */
+/* =========================
+   O‘CHIRISH
+========================= */
+function deleteUniver(){
+    const name = deleteName.value.trim();
+
+    sendToSheet({
+        page:"university_delete",
+        formData:{
+            university:name
+        }
+    });
+
+    deleteModal.style.display="none";
+    deleteName.value="";
+}
+
+/* =========================
+   TAHRIRLASH
+========================= */
 function toggleEdit(btn){
     const tr = btn.closest("tr");
     const edit = btn.dataset.edit === "1";
@@ -291,86 +288,20 @@ function toggleEdit(btn){
     lockRow(tr, edit);
     btn.dataset.edit = edit ? "0" : "1";
     btn.textContent = edit ? "✏️ Tahrirlash" : "💾 Saqlash";
-
-    updateStatusColors(tr);
-    saveData();
 }
 
-/* ===== O‘CHIRISH ===== */
-function deleteUniver(){
-    const name = deleteName.value.trim().toLowerCase();
-
-    [...tbody.rows].forEach(r=>{
-        if(r.cells[0].innerText.toLowerCase() === name){
-
-            sendToSheet({
-                page:"university_delete",
-                formData:{
-                    university:r.cells[0].innerText
-                }
-            });
-
-            r.remove();
-        }
-    });
-
-    saveData();
-    deleteModal.style.display="none";
-    deleteName.value="";
-}
-
-/* ===== FILTR ===== */
-function filterTable(){
-    const v = filterInput.value.toLowerCase();
-    [...tbody.rows].forEach(r=>{
-        r.style.display = r.cells[0].innerText.toLowerCase().includes(v) ? "" : "none";
-    });
-}
-
-/* ===== MODAL ===== */
-function openAdd(){ addModal.style.display="flex" }
-function openDelete(){ deleteModal.style.display="flex" }
-
-addModal.onclick = e => { if(e.target===addModal) addModal.style.display="none" }
-deleteModal.onclick = e => { if(e.target===deleteModal) deleteModal.style.display="none" }
-
-/* ===== SAHIFA YUKLANGANDA ===== */
+/* =========================
+   SAHIFA YUKLANGANDA
+========================= */
 window.onload = ()=>{
-    const d = localStorage.getItem("universities");
-    if(d){
-        tbody.innerHTML = d;
-        [...tbody.rows].forEach(r=>{
-            lockRow(r,true);
-            updateStatusColors(r);
-        });
-    }
+    loadFromSheet();
 };
 
-/* ===== STATUS O‘ZGARSA ===== */
-tbody.addEventListener("change", e=>{
-    const tr = e.target.closest("tr");
-    if(!tr) return;
-
-    updateStatusColors(tr);
-    saveData();
-
-    const university = tr.cells[0].innerText;
-
-    sendToSheet({
-        page:"university_update",
-        formData:{
-            university: university,
-            action:"status_changed"
-        }
-    });
-});
-
-tbody.addEventListener("input", saveData);
 </script>
-
 
 </body>
 </html>
+
 
 
 
