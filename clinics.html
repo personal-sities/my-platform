@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<title>Klinikalar monitoringi</title>
+
+<style>
+:root{
+    --blue:#1f5fa8;
+    --bg:#f4f7fb;
+    --border:#1f5fa8;
+}
+*{box-sizing:border-box;font-family:Arial,sans-serif}
+body{margin:0;background:var(--bg)}
+
+.header{
+    background:var(--blue);
+    color:#fff;
+    padding:15px 25px;
+    display:flex;
+    align-items:center;
+    gap:15px;
+}
+.logo{height:45px}
+.header h1{margin:0;font-size:22px}
+
+.container{padding:25px}
+
+.filter{
+    display:flex;
+    gap:10px;
+    margin-bottom:15px;
+}
+.filter input{padding:8px;width:250px}
+
+.btn{
+    background:var(--blue);
+    color:#fff;
+    border:none;
+    padding:8px 14px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    background:#fff;
+}
+th,td{
+    border:2px solid var(--border);
+    padding:8px;
+    text-align:center;
+}
+th{color:var(--blue);background:#f9fbff}
+
+.univer{
+    font-weight:bold;
+    color:var(--blue);
+    text-align:left;
+}
+
+.status-box{
+    text-align:left;
+    font-size:13px;
+}
+.status-box label{display:block;cursor:pointer}
+
+.comment{
+    width:100%;
+    border:none;
+    outline:none;
+}
+
+.footer{
+    margin-top:15px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.modal{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.4);
+    display:none;
+    align-items:center;
+    justify-content:center;
+}
+.modal-box{
+    background:#fff;
+    padding:20px;
+    width:350px;
+    border-radius:10px;
+}
+.modal-box h3{margin-top:0}
+.modal-box input{
+    width:100%;
+    padding:8px;
+    margin-bottom:10px;
+}
+.modal-actions{
+    display:flex;
+    gap:10px;
+    justify-content:flex-end;
+}
+.status-green{background:#e6f7e6;border-left:4px solid #28a745;padding-left:4px}
+.status-red{background:#fdeaea;border-left:4px solid #dc3545;padding-left:4px}
+.status-yellow{background:#fff8e1;border-left:4px solid #ffc107;padding-left:4px}
+</style>
+</head>
+<body>
+
+<div class="header">
+    <img src="images/studentcall.png" class="logo">
+    <h1>Klinikalar monitoringi</h1>
+</div>
+
+<div class="container">
+
+    <div class="filter">
+        <input id="filterInput" placeholder="Klinika nomi bo‘yicha filtr">
+        <button class="btn" onclick="filterTable()">Filtr</button>
+    </div>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Klinika nomi</th>
+            <th>Taklif</th>
+            <th>Suhbat sanasi</th>
+            <th>Коммерческий предложение</th>
+            <th>Shartnoma</th>
+            <th>Ish boshlandi</th>
+            <th>Yakun</th>
+            <th>Koment</th>
+            <th>Tahrirlash</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <div class="footer">
+        <button class="btn" onclick="history.back()">← Orqaga</button>
+        <div>
+            <button class="btn" onclick="openDelete()">Klinikani o‘chirish −</button>
+            <button class="btn" onclick="openAdd()">Klinika qo‘shish +</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="addModal">
+    <div class="modal-box">
+        <h3>Klinika qo‘shish</h3>
+        <input id="addName" placeholder="Klinika nomi">
+        <input id="addWork" placeholder="Ish boshlandi">
+        <div class="modal-actions">
+            <button class="btn" onclick="addUniver()">Qo‘shish</button>
+        </div>
+    </div>
+</div>
+
+<div class="modal" id="deleteModal">
+    <div class="modal-box">
+        <h3>Klinikani o‘chirish</h3>
+        <input id="deleteName" placeholder="Klinika nomi">
+        <div class="modal-actions">
+            <button class="btn" onclick="deleteUniver()">O‘chirish</button>
+        </div>
+    </div>
+</div>
+
+<script>
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGtujsdoI22AT-5wt3Hq4RpU3AZ8JGY2P0ztVhSp8CslDqsnOr3ggcgSmyezZn1hiM0g/exec";
+
+function sendToSheet(data){
+    fetch(SCRIPT_URL,{
+        method:"POST",
+        body:JSON.stringify(data),
+        headers:{
+            "Content-Type":"application/json"
+        }
+    }).catch(err=>console.log("Sheet error:",err));
+}
+
+    
+const tbody = document.querySelector("tbody");
+
+/* ===== SAQLASH ===== */
+function saveData(){
+    localStorage.setItem("clinics", tbody.innerHTML);
+}
+
+/* ===== STATUS RANGLARI ===== */
+function updateStatusColors(tr){
+    tr.querySelectorAll("label").forEach(l=>{
+        l.classList.remove("status-green","status-red","status-yellow");
+        const i = l.querySelector("input");
+        if(!i || !i.checked) return;
+
+        const t = l.innerText.toLowerCase();
+
+        if(t.includes("berildi") || t.includes("rozi") || t.includes("yakunlandi") || t.includes("tuzildi")){
+            l.classList.add("status-green");
+        }
+        else if(t.includes("rad") || t.includes("tuzilmadi")){
+            l.classList.add("status-red");
+        }
+        else if(t.includes("o‘ylab") || t.includes("jarayonda")){
+            l.classList.add("status-yellow");
+        }
+    });
+}
+
+/* ===== QATORNI QULFLASH ===== */
+function lockRow(tr, lock=true){
+    tr.querySelectorAll("input").forEach(i=>{
+        if(i.type !== "text") i.disabled = lock;
+    });
+}
+
+/* ===== UNIVERSITET QO‘SHISH ===== */
+function addUniver(){
+    const name=addName.value.trim();
+    const work=addWork.value.trim();
+    if(!name) return alert("Klinika nomini kiriting");
+
+    const id=Date.now();
+    const tr=document.createElement("tr");
+
+    tr.innerHTML=`
+<td class="univer">${name}</td>
+
+<td class="status-box">
+  <label><input type="checkbox"> Berildi</label>
+  <label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
+</td>
+
+<td><input type="date"></td>
+
+<td class="status-box">
+  <label><input type="checkbox"> Berildi</label>
+  <label><input type="checkbox"> Rozi</label>
+  <label><input type="checkbox"> Rad etildi</label>
+  <label><input type="checkbox"> O‘ylab ko‘rmoqda</label>
+</td>
+
+<td class="status-box">
+  <label><input type="radio" name="s${id}"> Tuzildi</label>
+  <label><input type="radio" name="s${id}"> Tuzilmadi</label>
+</td>
+
+<td>${work}</td>
+
+<td class="status-box">
+  <label><input type="radio" name="y${id}"> Yakunlandi</label>
+  <label><input type="radio" name="y${id}"> Jarayonda</label>
+</td>
+
+<td><input class="comment" placeholder="Koment..."></td>
+
+<td>
+  <button class="btn" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
+</td>
+`;
+
+    tbody.appendChild(tr);
+    lockRow(tr,true);
+    saveData();
+
+    // 🔥 GOOGLE SHEETGA YUBORISH
+    sendToSheet({
+        page:"university_add",
+        formData:{
+            university:name,
+            work_started:work
+        }
+    });
+
+    addModal.style.display="none";
+    addName.value="";
+    addWork.value="";
+}
+
+/* ===== TAHRIRLASH ===== */
+function toggleEdit(btn){
+    const tr = btn.closest("tr");
+    const edit = btn.dataset.edit === "1";
+
+    lockRow(tr, edit);
+    btn.dataset.edit = edit ? "0" : "1";
+    btn.textContent = edit ? "✏️ Tahrirlash" : "💾 Saqlash";
+
+    updateStatusColors(tr);
+    saveData();
+}
+
+/* ===== O‘CHIRISH ===== */
+function deleteUniver(){
+    const name = deleteName.value.trim().toLowerCase();
+
+    [...tbody.rows].forEach(r=>{
+        if(r.cells[0].innerText.toLowerCase() === name){
+
+            sendToSheet({
+                page:"university_delete",
+                formData:{
+                    university:r.cells[0].innerText
+                }
+            });
+
+            r.remove();
+        }
+    });
+
+    saveData();
+    deleteModal.style.display="none";
+    deleteName.value="";
+}
+
+/* ===== FILTR ===== */
+function filterTable(){
+    const v = filterInput.value.toLowerCase();
+    [...tbody.rows].forEach(r=>{
+        r.style.display = r.cells[0].innerText.toLowerCase().includes(v) ? "" : "none";
+    });
+}
+
+/* ===== MODAL ===== */
+function openAdd(){ addModal.style.display="flex" }
+function openDelete(){ deleteModal.style.display="flex" }
+
+addModal.onclick = e => { if(e.target===addModal) addModal.style.display="none" }
+deleteModal.onclick = e => { if(e.target===deleteModal) deleteModal.style.display="none" }
+
+/* ===== SAHIFA YUKLANGANDA ===== */
+window.onload = ()=>{
+    const d = localStorage.getItem("clinics");
+    if(d){
+        tbody.innerHTML = d;
+        [...tbody.rows].forEach(r=>{
+            lockRow(r,true);
+            updateStatusColors(r);
+        });
+    }
+};
+
+/* ===== STATUS O‘ZGARSA ===== */
+tbody.addEventListener("change", e=>{
+    const tr = e.target.closest("tr");
+    if(!tr) return;
+
+    updateStatusColors(tr);
+    saveData();
+
+    const university = tr.cells[0].innerText;
+
+    sendToSheet({
+        page:"university_update",
+        formData:{
+            university: university,
+            action:"status_changed"
+        }
+    });
+});
+
+tbody.addEventListener("input", saveData);
+</script>
+
+
+</body>
+</html>
+
+
+
+
+
