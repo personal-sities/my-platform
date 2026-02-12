@@ -60,8 +60,13 @@ body{
 
 <script>
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzGtujsdoI22AT-5wt3Hq4RpU3AZ8JGY2P0ztVhSp8CslDqsnOr3ggcgSmyezZn1hiM0g/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyndSS2U8CPB43R3-7kNGbCoWOWasfIyb-otomiwm104tdlD7BdpjSiNGdsWvNMB0H3dA/exec";
 
+let staff = [];
+
+/* =========================
+   GOOGLE SHEETGA YUBORISH
+========================= */
 function sendToSheet(data){
     fetch(SCRIPT_URL,{
         method:"POST",
@@ -69,16 +74,47 @@ function sendToSheet(data){
         headers:{
             "Content-Type":"application/json"
         }
-    }).catch(err=>console.log("Sheet error:",err));
+    })
+    .then(()=>loadFromSheet()) // har safar yangilab oladi
+    .catch(err=>console.log("Sheet error:",err));
 }
 
+/* =========================
+   GOOGLE SHEETDAN O‘QISH
+========================= */
+function loadFromSheet(){
+  fetch(SCRIPT_URL)
+  .then(res=>res.json())
+  .then(data=>{
+      staff = data.staff.map(s=>{
+          return {
+              name:s[0],
+              role:s[1],
+              place:s[2],
+              tasks:[]
+          }
+      });
 
-let staff = JSON.parse(localStorage.getItem("staff")) || [];
+      data.tasks.forEach(t=>{
+          let person = staff.find(s=>s.name===t[0]);
+          if(person){
+              person.tasks.push({
+                  name:t[1],
+                  place:t[2],
+                  date:t[3],
+                  status:Number(t[4])
+              });
+          }
+      });
 
-function save(){
-    localStorage.setItem("staff",JSON.stringify(staff));
+      render();
+  })
+  .catch(err=>console.log("Load error:",err));
 }
 
+/* =========================
+   RENDER
+========================= */
 function render(){
     staffContainer.innerHTML="";
     staff.forEach((s,i)=>{
@@ -103,39 +139,47 @@ function render(){
     });
 }
 
+/* =========================
+   TASK HTML
+========================= */
 function tasksHTML(tasks,status,index){
-    return tasks.filter(t=>t.status===status).map((t,ti)=>{
+    return tasks
+    .filter(t=>t.status===status)
+    .map((t,ti)=>{
         return `
         <p>
             ${t.name} | ${t.place} | ${t.date}
-            ${status==0?`<button onclick="done(${index},${ti})">Bajarildi</button>`:""}
+            ${status==0?`<button onclick="done(${index},'${t.name}')">Bajarildi</button>`:""}
         </p>`;
     }).join("");
 }
 
+/* =========================
+   SECTION TOGGLE
+========================= */
 function toggle(btn,i){
     const sec=btn.parentElement.querySelectorAll(".section")[i];
     sec.style.display=sec.style.display==="block"?"none":"block";
 }
 
+/* =========================
+   STAFF QO‘SHISH
+========================= */
 function addStaff(){
     const name=prompt("Ism familiya:");
     const role=prompt("Lavozimi:");
     const place=prompt("Ish joyi:");
     if(!name) return;
 
-    const newStaff = {name,role,place,tasks:[]};
-    staff.push(newStaff);
-
     sendToSheet({
         page:"staff_add",
-        formData:newStaff
+        formData:{name,role,place}
     });
-
-    save(); 
-    render();
 }
-    
+
+/* =========================
+   VAZIFA QO‘SHISH
+========================= */
 function addTask(i){
     const name = prompt("Vazifa nomi:");
     const date = prompt("Muddat YYYY-MM-DD:");
@@ -145,55 +189,40 @@ function addTask(i){
     const now = new Date().toISOString().split("T")[0];
     let status = date < now ? 2 : 0;
 
-    const newTask = {
-        name: name,
-        date: date,
-        place: place,
-        status: status
-    };
-
-    staff[i].tasks.push(newTask);
-
     sendToSheet({
         page:"task_add",
         formData:{
             staff: staff[i].name,
-            ...newTask
+            name,
+            place,
+            date,
+            status
         }
     });
-
-    save();
-    render();
 }
 
-function done(i,ti){
-    staff[i].tasks[ti].status=1;
-
+/* =========================
+   BAJARILDI
+========================= */
+function done(i,taskName){
     sendToSheet({
         page:"task_done",
         formData:{
             staff: staff[i].name,
-            task: staff[i].tasks[ti].name
+            task: taskName
         }
     });
-
-    save(); 
-    render();
 }
 
-if(staff.length===0){
-    staff=[
-        {name:"Jumatullayev Jonibek",role:"SMS/CRM",place:"Birja",tasks:[]},
-        {name:"Isroilov Isfandiyor",role:"SMS/CRM",place:"Birja",tasks:[]}
-    ];
-    save();
-}
-
-render();
+/* =========================
+   SAHIFA OCHILGANDA
+========================= */
+loadFromSheet();
 
 </script>
 </body>
 </html>
+
 
 
 
