@@ -189,7 +189,7 @@ const tbody = document.querySelector("tbody");
 
 /* ===== SAQLASH ===== */
 function saveData(){
-    localStorage.setItem("universities", tbody.innerHTML);
+    localStorage.setItem("clinics", tbody.innerHTML);
 }
 
 /* ===== STATUS RANGLARI ===== */
@@ -336,7 +336,7 @@ deleteModal.onclick = e => { if(e.target===deleteModal) deleteModal.style.displa
 
 /* ===== SAHIFA YUKLANGANDA ===== */
 window.onload = ()=>{
-    const d = localStorage.getItem("universities");
+    const d = localStorage.getItem("clinics");
     if(d){
         tbody.innerHTML = d;
         [...tbody.rows].forEach(r=>{
@@ -371,6 +371,7 @@ tbody.addEventListener("input", saveData);
 
 </body>
 </html>
+
 
 
 
