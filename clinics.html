@@ -174,6 +174,56 @@ th{color:var(--blue);background:#f9fbff}
 const LS_KEY = "clinics_monitor_v1";
 const tbody = document.querySelector("tbody");
 
+const STATUS = {
+  offer: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Berildi", t:"Berildi", c:"status-green" },
+    { v:"O'ylab ko'rmoqda", t:"O'ylab ko'rmoqda", c:"status-yellow" },
+    { v:"Rad etdi", t:"Rad etdi", c:"status-red" },
+    { v:"Rozi bo'ldi", t:"Rozi bo'ldi", c:"status-green" },
+  ],
+  commercial: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Berildi", t:"Berildi", c:"status-green" },
+    { v:"O'ylab ko'rmoqda", t:"O'ylab ko'rmoqda", c:"status-yellow" },
+    { v:"Rad etildi", t:"Rad etildi", c:"status-red" },
+  ],
+  contract: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Tuzildi", t:"Tuzildi", c:"status-green" },
+    { v:"Tuzilmadi", t:"Tuzilmadi", c:"status-red" },
+    { v:"O'ylab ko'rmoqda", t:"O'ylab ko'rmoqda", c:"status-yellow" },
+  ],
+  final: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Yakunlandi", t:"Yakunlandi", c:"status-green" },
+    { v:"Yakunlanmadi", t:"Yakunlanmadi", c:"status-red" },
+    { v:"Jarayonda", t:"Jarayonda", c:"status-yellow" },
+  ]
+};
+
+function statusClass(groupKey, value){
+  const item = STATUS[groupKey].find(x => x.v === value);
+  return item ? item.c : "";
+}
+
+function statusSelectHTML(groupKey, value, clinicName){
+  const opts = STATUS[groupKey].map(o =>
+    `<option value="${o.v.replace(/"/g,'&quot;')}">${o.t}</option>`
+  ).join("");
+
+  return `
+    <div class="status-wrap ${statusClass(groupKey, value)}">
+      <select class="status-select"
+              data-group="${groupKey}"
+              data-clinic="${encodeURIComponent(clinicName)}">
+        ${opts}
+      </select>
+    </div>
+  `;
+}
+
+
 function getData(){
     const raw = localStorage.getItem(LS_KEY);
     if(!raw) return [];
@@ -186,33 +236,98 @@ function setData(list){
 }
 
 function loadFromLocal(){
-    const clinics = getData();
-    tbody.innerHTML = "";
+  const clinics = getData();
+  tbody.innerHTML = "";
 
-    clinics.forEach(c=>{
-        const tr = document.createElement("tr");
+  clinics.forEach(c=>{
+    const tr = document.createElement("tr");
 
-        tr.innerHTML = `
-<td class="clinic">${c.clinic || ""}</td>
-<td class="status-box"></td>
-<td><input type="date" value="${c.meeting_date||""}" disabled></td>
-<td class="status-box"></td>
-<td class="status-box"></td>
-<td>${c.work_started||""}</td>
-<td class="status-box"></td>
-<td><input class="comment" value="${c.comment||""}" placeholder="Koment..." disabled></td>
-<td>
-  <button class="btn" data-edit="0" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
-</td>
-`;
-        tbody.appendChild(tr);
+    // eski ma’lumotlar uchun defaultlar
+    c.offer_status = c.offer_status || "";
+    c.commercial_status = c.commercial_status || "";
+    c.contract_status = c.contract_status || "";
+    c.final_status = c.final_status || "";
+    c.meeting_date = c.meeting_date || "";
+    c.comment = c.comment || "";
+    c.work_started = c.work_started || "";
+
+    tr.innerHTML = `
+      <td class="clinic">${c.clinic || ""}</td>
+
+      <td class="status-box">
+        ${statusSelectHTML("offer", c.offer_status, c.clinic || "")}
+      </td>
+
+      <td><input type="date" value="${c.meeting_date}" disabled></td>
+
+      <td class="status-box">
+        ${statusSelectHTML("commercial", c.commercial_status, c.clinic || "")}
+      </td>
+
+      <td class="status-box">
+        ${statusSelectHTML("contract", c.contract_status, c.clinic || "")}
+      </td>
+
+      <td>${c.work_started}</td>
+
+      <td class="status-box">
+        ${statusSelectHTML("final", c.final_status, c.clinic || "")}
+      </td>
+
+      <td><input class="comment" value="${c.comment}" placeholder="Koment..." disabled></td>
+
+      <td>
+        <button class="btn" data-edit="0" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+
+    // select qiymatini set qilish + edit lock holati
+    tr.querySelectorAll("select.status-select").forEach(sel=>{
+      const g = sel.dataset.group;
+      const val =
+        g === "offer" ? c.offer_status :
+        g === "commercial" ? c.commercial_status :
+        g === "contract" ? c.contract_status :
+        c.final_status;
+
+      sel.value = val || "";
+      sel.disabled = true; // tahrirlash bosilmaguncha
+
+      // rangni select value ga qarab yangilash
+      const wrap = sel.closest(".status-wrap");
+      wrap.classList.remove("status-green","status-red","status-yellow");
+      const cls = statusClass(g, sel.value);
+      if(cls) wrap.classList.add(cls);
+
+      // status o‘zgarganda darrov localstoragega yozish
+      sel.addEventListener("change", ()=>{
+        const clinicsNow = getData();
+        const name = decodeURIComponent(sel.dataset.clinic || "");
+        const idx = clinicsNow.findIndex(x => (x.clinic||"") === name);
+        if(idx === -1) return;
+
+        if(g === "offer") clinicsNow[idx].offer_status = sel.value;
+        if(g === "commercial") clinicsNow[idx].commercial_status = sel.value;
+        if(g === "contract") clinicsNow[idx].contract_status = sel.value;
+        if(g === "final") clinicsNow[idx].final_status = sel.value;
+
+        setData(clinicsNow);
+
+        // rang yangilash
+        wrap.classList.remove("status-green","status-red","status-yellow");
+        const c2 = statusClass(g, sel.value);
+        if(c2) wrap.classList.add(c2);
+      });
     });
+  });
 }
 
+
 function lockRow(tr, lock=true){
-    tr.querySelectorAll("input").forEach(i=>{
-        i.disabled = lock;
-    });
+  tr.querySelectorAll("input, select").forEach(el=>{
+    el.disabled = lock;
+  });
 }
 
 function addClinic(){
@@ -257,27 +372,28 @@ function deleteClinic(){
 }
 
 function toggleEdit(btn){
-    const tr = btn.closest("tr");
-    const editing = btn.dataset.edit === "1";
+  const tr = btn.closest("tr");
+  const editing = btn.dataset.edit === "1";
 
-    if(editing){
-        const name = tr.querySelector(".clinic").textContent.trim();
-        const dateVal = tr.querySelector('input[type="date"]').value;
-        const commentVal = tr.querySelector(".comment").value;
+  // agar hozir edit rejimida bo‘lsa -> Saqlash bosildi
+  if(editing){
+    const clinicName = tr.querySelector(".clinic").textContent.trim();
+    const dateVal = tr.querySelector('input[type="date"]').value || "";
+    const commentVal = tr.querySelector(".comment").value || "";
 
-        const clinics = getData();
-        const idx = clinics.findIndex(x => x.clinic === name);
-
-        if(idx !== -1){
-            clinics[idx].meeting_date = dateVal;
-            clinics[idx].comment = commentVal;
-            setData(clinics);
-        }
+    const clinics = getData();
+    const idx = clinics.findIndex(x => (x.clinic||"") === clinicName);
+    if(idx !== -1){
+      clinics[idx].meeting_date = dateVal;
+      clinics[idx].comment = commentVal;
+      setData(clinics);
     }
+  }
 
-    lockRow(tr, editing);
-    btn.dataset.edit = editing ? "0" : "1";
-    btn.textContent = editing ? "✏️ Tahrirlash" : "💾 Saqlash";
+  // lock/unlock
+  lockRow(tr, editing);
+  btn.dataset.edit = editing ? "0" : "1";
+  btn.textContent = editing ? "✏️ Tahrirlash" : "💾 Saqlash";
 }
 
 function openAdd(){ addModal.style.display="flex"; }
@@ -299,4 +415,5 @@ window.onload = loadFromLocal;
 
 </body>
 </html>
+
 
