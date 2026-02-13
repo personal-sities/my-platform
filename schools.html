@@ -54,7 +54,7 @@ th,td{
 }
 th{color:var(--blue);background:#f9fbff}
 
-.univer{
+.school{
     font-weight:bold;
     color:var(--blue);
     text-align:left;
@@ -155,79 +155,72 @@ th{color:var(--blue);background:#f9fbff}
         <input id="addName" placeholder="Maktab nomi">
         <input id="addWork" placeholder="Ish boshlandi">
         <div class="modal-actions">
-            <button class="btn" onclick="addUniver()">Qo‘shish</button>
+            <button class="btn" onclick="addSchool()">Qo‘shish</button>
         </div>
     </div>
 </div>
 
 <div class="modal" id="deleteModal">
     <div class="modal-box">
-        <h3>Maktabni o‘chirish</h3>
+        <h3>Maktab o‘chirish</h3>
         <input id="deleteName" placeholder="Maktab nomi">
         <div class="modal-actions">
-            <button class="btn" onclick="deleteUniver()">O‘chirish</button>
+            <button class="btn" onclick="deleteSchool()">O‘chirish</button>
         </div>
     </div>
 </div>
 
 <script>
-
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz22BJQq97A7636E2q4jWYIcGD6Len1VByHWKsU-1Or3f7v2Wf6mXaUgV91wwIjJ5l4hQ/exec";
+/* =========================
+   LOCALSTORAGE sozlama
+========================= */
+const LS_KEY = "schools_monitor_v1";
 
 const tbody = document.querySelector("tbody");
 
-/* =========================
-   GOOGLE SHEETGA YUBORISH
-========================= */
-function sendToSheet(data){
-    fetch(SCRIPT_URL,{
-        method:"POST",
-        body:JSON.stringify(data),
-        headers:{
-            "Content-Type":"application/json"
-        }
-    })
-    .then(()=>loadFromSheet())
-    .catch(err=>console.log("Sheet error:",err));
+function getData(){
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return [];
+    try{ return JSON.parse(raw) || []; }
+    catch(e){ console.log("Local parse error:", e); return []; }
+}
+
+function setData(list){
+    localStorage.setItem(LS_KEY, JSON.stringify(list));
 }
 
 /* =========================
-   GOOGLE SHEETDAN O‘QISH
+   LOCAL LOAD
 ========================= */
-function loadFromSheet(){
-    fetch(SCRIPT_URL)
-    .then(res=>res.json())
-    .then(data=>{
-        tbody.innerHTML="";
+function loadFromLocal(){
+    const schools = getData();
+    tbody.innerHTML = "";
 
-        if(!data.schools) return;
+    schools.forEach(s=>{
+        const tr=document.createElement("tr");
 
-        data.schools.forEach(u=>{
-            const tr=document.createElement("tr");
-
-            tr.innerHTML=`
-<td class="univer">${u[0]}</td>
+        tr.innerHTML=`
+<td class="school">${s.school || ""}</td>
 
 <td class="status-box"></td>
 
-<td><input type="date" value="${u[2]||""}"></td>
+<td><input type="date" value="${s.meeting_date||""}" disabled></td>
 
 <td class="status-box"></td>
 
 <td class="status-box"></td>
 
-<td>${u[1]||""}</td>
+<td>${s.work_started||""}</td>
 
 <td class="status-box"></td>
 
-<td><input class="comment" value="${u[3]||""}" placeholder="Koment..."></td>
+<td><input class="comment" value="${s.comment||""}" placeholder="Koment..." disabled></td>
 
 <td>
-  <button class="btn" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
+  <button class="btn" data-edit="0" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
 </td>
 `;
-            tbody.appendChild(tr);
-        });
+        tbody.appendChild(tr);
     });
 }
 
@@ -236,25 +229,34 @@ function loadFromSheet(){
 ========================= */
 function lockRow(tr, lock=true){
     tr.querySelectorAll("input").forEach(i=>{
-        if(i.type !== "text") i.disabled = lock;
+        i.disabled = lock;
     });
 }
 
 /* =========================
-   UNIVERSITET QO‘SHISH
+   MAKTAB QO‘SHISH
 ========================= */
-function addUniver(){
-    const name=addName.value.trim();
-    const work=addWork.value.trim();
+function addSchool(){
+    const name = addName.value.trim();
+    const work = addWork.value.trim();
     if(!name) return alert("Maktab nomini kiriting");
 
-    sendToSheet({
-        page:"university_add",
-        formData:{
-            university:name,
-            work_started:work
-        }
+    const schools = getData();
+
+    if(schools.some(x => (x.school||"").toLowerCase() === name.toLowerCase())){
+        alert("Bu maktab allaqachon mavjud!");
+        return;
+    }
+
+    schools.push({
+        school: name,
+        work_started: work,
+        meeting_date: "",
+        comment: ""
     });
+
+    setData(schools);
+    loadFromLocal();
 
     addModal.style.display="none";
     addName.value="";
@@ -264,41 +266,82 @@ function addUniver(){
 /* =========================
    O‘CHIRISH
 ========================= */
-function deleteUniver(){
+function deleteSchool(){
     const name = deleteName.value.trim();
+    if(!name) return alert("Maktab nomini kiriting");
 
-    sendToSheet({
-        page:"university_delete",
-        formData:{
-            university:name
-        }
-    });
+    let schools = getData();
+    schools = schools.filter(x => (x.school||"").toLowerCase() !== name.toLowerCase());
+
+    setData(schools);
+    loadFromLocal();
 
     deleteModal.style.display="none";
     deleteName.value="";
 }
 
 /* =========================
-   TAHRIRLASH
+   TAHRIRLASH + SAQLASH
 ========================= */
 function toggleEdit(btn){
     const tr = btn.closest("tr");
-    const edit = btn.dataset.edit === "1";
+    const isEditing = btn.dataset.edit === "1";
 
-    lockRow(tr, edit);
-    btn.dataset.edit = edit ? "0" : "1";
-    btn.textContent = edit ? "✏️ Tahrirlash" : "💾 Saqlash";
+    if(isEditing){
+        const schoolName = tr.querySelector(".school").textContent.trim();
+        const dateVal = tr.querySelector('input[type="date"]').value || "";
+        const commentVal = tr.querySelector(".comment").value || "";
+
+        const schools = getData();
+        const idx = schools.findIndex(x => (x.school||"") === schoolName);
+
+        if(idx !== -1){
+            schools[idx].meeting_date = dateVal;
+            schools[idx].comment = commentVal;
+            setData(schools);
+        }
+    }
+
+    lockRow(tr, isEditing);
+    btn.dataset.edit = isEditing ? "0" : "1";
+    btn.textContent = isEditing ? "✏️ Tahrirlash" : "💾 Saqlash";
+}
+
+/* =========================
+   MODAL FUNKSIYALAR
+========================= */
+function openAdd(){
+    addModal.style.display="flex";
+}
+function openDelete(){
+    deleteModal.style.display="flex";
+}
+
+addModal.addEventListener("click", e=>{
+    if(e.target === addModal) addModal.style.display="none";
+});
+deleteModal.addEventListener("click", e=>{
+    if(e.target === deleteModal) deleteModal.style.display="none";
+});
+
+/* =========================
+   FILTR
+========================= */
+function filterTable(){
+    const q = (filterInput.value || "").toLowerCase().trim();
+    tbody.querySelectorAll("tr").forEach(tr=>{
+        const name = tr.querySelector(".school")?.textContent.toLowerCase() || "";
+        tr.style.display = name.includes(q) ? "" : "none";
+    });
 }
 
 /* =========================
    SAHIFA YUKLANGANDA
 ========================= */
 window.onload = ()=>{
-    loadFromSheet();
+    loadFromLocal();
 };
-
 </script>
 
 </body>
-
 </html>
