@@ -79,7 +79,7 @@ body{
 <body>
 
 <div class="header">
-<img src="images/studentcall.png" class="logo">
+<img src="images/studentcall.png" class="logo" alt="logo">
 <div class="title">Hodimlar nazorati</div>
 </div>
 
@@ -91,122 +91,124 @@ body{
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx-4JLYcDc3dKcOX_2Wvl5dd9Eh4UGTifPwb_HsOOmWUTj5qfiKWkZNnUTfL52Gbrh7Aw/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyvhkUGOyDkxoQBg2K1Z1y5JajEde08q8AT1eH3Af1FnUB5VSY4ndqvWspa8IS5RK2C8A/exec";
 
 let staff = [];
 
 /* =========================
-   GOOGLE SHEETGA YUBORISH
+   GOOGLE SHEETGA YUBORISH (POST)
 ========================= */
 function sendToSheet(data){
-    const params = new URLSearchParams({
-        data: JSON.stringify(data)
-    });
-
-    fetch(SCRIPT_URL + "?" + params.toString())
-    .then(res=>res.text())
-    .then(()=>loadFromSheet())
-    .catch(err=>console.log("Sheet error:",err));
+    fetch(SCRIPT_URL, {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: {
+            "Content-Type": "application/json"
+        }
+    })
+    .then(res => res.json())
+    .then(() => loadFromSheet())
+    .catch(err => console.log("Sheet error:", err));
 }
 
 /* =========================
-   GOOGLE SHEETDAN O‘QISH
+   GOOGLE SHEETDAN O‘QISH (GET)
 ========================= */
 function loadFromSheet(){
-  fetch(SCRIPT_URL)   // 🔥 BU YERDA STRING EMAS
-  .then(res=>res.json())
-  .then(data=>{
-      staff = data.staff.map(s=>({
-          name:s[0],
-          role:s[1],
-          place:s[2],
-          tasks:[]
-      }));
+    fetch(SCRIPT_URL)
+    .then(res => res.json())
+    .then(data => {
+        staff = data.staff.map(s => ({
+            name: s[0],
+            role: s[1],
+            place: s[2],
+            tasks: []
+        }));
 
-      data.tasks.forEach(t=>{
-          let person = staff.find(s=>s.name===t[0]);
-          if(person){
-              person.tasks.push({
-                  name:t[1],
-                  place:t[2],
-                  date:t[3],
-                  status:Number(t[4])
-              });
-          }
-      });
+        data.tasks.forEach(t => {
+            let person = staff.find(s => s.name === t[0]);
+            if(person){
+                person.tasks.push({
+                    name: t[1],
+                    place: t[2],
+                    date: t[3],
+                    status: Number(t[4])
+                });
+            }
+        });
 
-      render();
-  })
-  .catch(err=>console.log("Load error:",err));
+        render();
+    })
+    .catch(err => console.log("Load error:", err));
 }
 
 /* =========================
-   RENDER
+   RENDER HTML
 ========================= */
 function render(){
-    staffContainer.innerHTML="";
-    staff.forEach((s,i)=>{
-        const card=document.createElement("div");
-        card.className="card";
+    const staffContainer = document.getElementById("staffContainer");
+    staffContainer.innerHTML = "";
+    staff.forEach((s,i) => {
+        const card = document.createElement("div");
+        card.className = "card";
 
-        card.innerHTML=`
-        <div class="name">${s.name}</div>
-        <div>Lavozimi: ${s.role}</div>
-        <div>Ish joyi: ${s.place}</div>
+        card.innerHTML = `
+            <div class="name">${s.name}</div>
+            <div>Lavozimi: ${s.role}</div>
+            <div>Ish joyi: ${s.place}</div>
 
-        <button class="btn" onclick="toggle(this,0)">Vazifalari</button>
-        <button class="btn" onclick="toggle(this,1)">Bajarilgan vazifalar</button>
-        <button class="btn" onclick="toggle(this,2)">Muddati o'tgan vazifalar</button>
-        <button class="btn plus" onclick="addTask(${i})">+</button>
+            <button class="btn" onclick="toggle(this,0)">Vazifalari</button>
+            <button class="btn" onclick="toggle(this,1)">Bajarilgan vazifalar</button>
+            <button class="btn" onclick="toggle(this,2)">Muddati o'tgan vazifalar</button>
+            <button class="btn plus" onclick="addTask(${i})">+</button>
 
-        <div class="section">${tasksHTML(s.tasks,0,i)}</div>
-        <div class="section">${tasksHTML(s.tasks,1,i)}</div>
-        <div class="section">${tasksHTML(s.tasks,2,i)}</div>
+            <div class="section">${tasksHTML(s.tasks,0,i)}</div>
+            <div class="section">${tasksHTML(s.tasks,1,i)}</div>
+            <div class="section">${tasksHTML(s.tasks,2,i)}</div>
         `;
         staffContainer.appendChild(card);
     });
 }
 
 /* =========================
-   TASK HTML
+   TASKS HTML generatsiyasi
 ========================= */
-function tasksHTML(tasks,status,index){
+function tasksHTML(tasks, status, index){
     return tasks
-    .filter(t=>t.status===status)
-    .map(t=>{
-        return `
-        <p>
-            ${t.name} | ${t.place} | ${t.date}
-            ${status==0?`<button onclick="done(${index},'${encodeURIComponent(t.name)}')">Bajarildi</button>`:""}
-        </p>`;
-    }).join("");
+        .filter(t => t.status === status)
+        .map(t => `
+            <p>
+                ${t.name} | ${t.place} | ${t.date}
+                ${status === 0 ? `<button onclick="done(${index},'${encodeURIComponent(t.name)}')">Bajarildi</button>` : ""}
+            </p>`
+        ).join("");
 }
 
 /* =========================
-   SECTION TOGGLE
+   SECTION toggle funksiyasi
 ========================= */
-function toggle(btn,i){
-    const sec=btn.parentElement.querySelectorAll(".section")[i];
-    sec.style.display=sec.style.display==="block"?"none":"block";
+function toggle(btn, i){
+    const sec = btn.parentElement.querySelectorAll(".section")[i];
+    sec.style.display = sec.style.display === "block" ? "none" : "block";
 }
 
 /* =========================
-   STAFF QO‘SHISH
+   Yangi hodim qo'shish
 ========================= */
 function addStaff(){
-    const name=prompt("Ism familiya:");
-    const role=prompt("Lavozimi:");
-    const place=prompt("Ish joyi:");
+    const name = prompt("Ism familiya:");
+    const role = prompt("Lavozimi:");
+    const place = prompt("Ish joyi:");
     if(!name) return;
 
     sendToSheet({
-        page:"staff_add",
-        formData:{name,role,place}
+        page: "staff_add",
+        formData: {name, role, place}
     });
 }
 
 /* =========================
-   VAZIFA QO‘SHISH
+   Yangi vazifa qo'shish
 ========================= */
 function addTask(i){
     const name = prompt("Vazifa nomi:");
@@ -218,8 +220,8 @@ function addTask(i){
     let status = date < now ? 2 : 0;
 
     sendToSheet({
-        page:"task_add",
-        formData:{
+        page: "task_add",
+        formData: {
             staff: staff[i].name,
             name,
             place,
@@ -230,12 +232,12 @@ function addTask(i){
 }
 
 /* =========================
-   BAJARILDI
+   Vazifani bajarildi deb belgilash
 ========================= */
-function done(i,taskName){
+function done(i, taskName){
     sendToSheet({
-        page:"task_done",
-        formData:{
+        page: "task_done",
+        formData: {
             staff: staff[i].name,
             task: decodeURIComponent(taskName)
         }
@@ -243,20 +245,10 @@ function done(i,taskName){
 }
 
 /* =========================
-   SAHIFA OCHILGANDA
+   Sahifa yuklanganda ma'lumotlarni yuklash
 ========================= */
 loadFromSheet();
 </script>
 
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
