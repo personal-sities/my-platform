@@ -7,40 +7,72 @@
 <style>
 body{
     margin:0;
-    font-family:Segoe 
-        UI;background:#f3f5f7
+    font-family:Segoe UI;
+    background:#f3f5f7;
 }
 .header{
     background:#2b5f98;
     color:#fff;
     padding:20px 40px;
     display:flex;
-    align-items:center
+    align-items:center;
 }
 .logo{
     width:55px;
     height:55px;
     margin-right:15px;
 }
-
 .title{
     font-size:28px;
-    font-weight:bold
+    font-weight:bold;
 }
-
 .container{
     width:85%;
-    margin:40px auto
+    margin:40px auto;
 }
 .card{
-    border:3px solid #2b5f98;border-radius:15px;padding:25px;margin-bottom:25px;background:white;position:relative}
-.name{font-size:24px;font-weight:bold;color:#2b5f98}
-.btn{background:#2b5f98;color:white;border:none;padding:10px 20px;border-radius:10px;margin-top:15px;margin-right:10px;cursor:pointer}
-.plus{position:absolute;right:25px;top:50%;transform:translateY(-50%);width:50px;height:50px;border-radius:50%;font-size:22px}
-.section{display:none;margin-top:20px;border-top:1px solid #ddd;padding-top:10px}
-.bottom{width:85%;margin:30px auto;display:flex;justify-content:space-between}
-.green{background:#28a745}
-.red{background:#dc3545}
+    border:3px solid #2b5f98;
+    border-radius:15px;
+    padding:25px;
+    margin-bottom:25px;
+    background:white;
+    position:relative;
+}
+.name{font-size:24px;font-weight:bold;color:#2b5f98;}
+.btn{
+    background:#2b5f98;
+    color:white;
+    border:none;
+    padding:10px 20px;
+    border-radius:10px;
+    margin-top:15px;
+    margin-right:10px;
+    cursor:pointer;
+}
+.plus{
+    position:absolute;
+    right:25px;
+    top:50%;
+    transform:translateY(-50%);
+    width:50px;
+    height:50px;
+    border-radius:50%;
+    font-size:22px;
+}
+.section{
+    display:none;
+    margin-top:20px;
+    border-top:1px solid #ddd;
+    padding-top:10px;
+}
+.bottom{
+    width:85%;
+    margin:30px auto;
+    display:flex;
+    justify-content:space-between;
+}
+.green{background:#28a745;}
+.red{background:#dc3545;}
 </style>
 </head>
 
@@ -59,8 +91,7 @@ body{
 </div>
 
 <script>
-
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHyXa-cMaGoap1Ccakai01rU_ihAmvfoQHeDFpK4zv8Lv30ZbZ8UWyQHyA0B9HvKIobA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; // <== Bu yerga o'zingizning Apps Script Web App URL
 
 let staff = [];
 
@@ -75,7 +106,7 @@ function sendToSheet(data){
             "Content-Type":"application/json"
         }
     })
-    .then(()=>loadFromSheet()) // har safar yangilab oladi
+    .then(()=>loadFromSheet())
     .catch(err=>console.log("Sheet error:",err));
 }
 
@@ -83,31 +114,31 @@ function sendToSheet(data){
    GOOGLE SHEETDAN O‘QISH
 ========================= */
 function loadFromSheet(){
-  fetch("https://script.google.com/macros/s/AKfycbzHyXa-cMaGoap1Ccakai01rU_ihAmvfoQHeDFpK4zv8Lv30ZbZ8UWyQHyA0B9HvKIobA/exec")
-    .then(res => res.json())
-    .then(data => {
-        staff = data.staff.map(s => ({
-            name: s[0],
-            role: s[1],
-            place: s[2],
-            tasks: []
-        }));
+  fetch(SCRIPT_URL)
+  .then(res=>res.json())
+  .then(data=>{
+      staff = data.staff.map(s=>({
+          name:s[0],
+          role:s[1],
+          place:s[2],
+          tasks:[]
+      }));
 
-        data.tasks.forEach(t=>{
-            let person = staff.find(s => s.name === t[0]);
-            if(person){
-                person.tasks.push({
-                    name: t[1],
-                    place: t[2],
-                    date: t[3],
-                    status: Number(t[4])
-                });
-            }
-        });
+      data.tasks.forEach(t=>{
+          let person = staff.find(s=>s.name===t[0]);
+          if(person){
+              person.tasks.push({
+                  name:t[1],
+                  place:t[2],
+                  date:t[3],
+                  status:Number(t[4])
+              });
+          }
+      });
 
-        render();
-    })
-    .catch(err => console.log("Load error:", err));
+      render();
+  })
+  .catch(err=>console.log("Load error:",err));
 }
 
 /* =========================
@@ -143,11 +174,11 @@ function render(){
 function tasksHTML(tasks,status,index){
     return tasks
     .filter(t=>t.status===status)
-    .map((t,ti)=>{
+    .map(t=>{
         return `
         <p>
             ${t.name} | ${t.place} | ${t.date}
-            ${status==0?`<button onclick="done(${index},'${t.name}')">Bajarildi</button>`:""}
+            ${status==0?`<button onclick="done(${index},'${encodeURIComponent(t.name)}')">Bajarildi</button>`:""}
         </p>`;
     }).join("");
 }
@@ -207,7 +238,7 @@ function done(i,taskName){
         page:"task_done",
         formData:{
             staff: staff[i].name,
-            task: taskName
+            task: decodeURIComponent(taskName)
         }
     });
 }
@@ -216,17 +247,7 @@ function done(i,taskName){
    SAHIFA OCHILGANDA
 ========================= */
 loadFromSheet();
-
 </script>
+
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
