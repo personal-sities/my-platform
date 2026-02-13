@@ -171,9 +171,35 @@ th{color:var(--blue);background:#f9fbff}
 </div>
 
 <script>
-const LS_KEY = "clinics_monitor_v1";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxR-ldsB_g9XcnP6CU-5stoU0_4HaawHZDng4Ylv-LEgKznfLSqb3hSuAuFZLJ49ZRRDA/exec";
 const tbody = document.querySelector("tbody");
 
+/* =========================
+   API (Google Sheets)
+========================= */
+async function apiList(){
+  const res = await fetch(`${SCRIPT_URL}?action=list`, { cache:"no-store" });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error || "API list error");
+  return j.data || [];
+}
+
+async function apiSaveAll(list){
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action:"saveAll", data:list })
+  });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error || "API saveAll error");
+}
+
+async function getData(){ return await apiList(); }
+async function setData(list){ await apiSaveAll(list); }
+
+/* =========================
+   STATUS OPTIONS + COLORS
+========================= */
 const STATUS = {
   offer: [
     { v:"", t:"— tanlang —", c:"" },
@@ -209,7 +235,7 @@ function statusClass(groupKey, value){
 
 function statusSelectHTML(groupKey, value, clinicName){
   const opts = STATUS[groupKey].map(o =>
-    `<option value="${o.v.replace(/"/g,'&quot;')}">${o.t}</option>`
+    `<option value="${String(o.v).replace(/"/g,'&quot;')}">${o.t}</option>`
   ).join("");
 
   return `
@@ -223,26 +249,30 @@ function statusSelectHTML(groupKey, value, clinicName){
   `;
 }
 
-
-function getData(){
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return [];
-    try{ return JSON.parse(raw) || []; }
-    catch(e){ console.log("Parse error:", e); return []; }
+function applyStatusColor(sel){
+  const wrap = sel.closest(".status-wrap");
+  if(!wrap) return;
+  wrap.classList.remove("status-green","status-red","status-yellow");
+  const cls = statusClass(sel.dataset.group, sel.value);
+  if(cls) wrap.classList.add(cls);
 }
 
-function setData(list){
-    localStorage.setItem(LS_KEY, JSON.stringify(list));
-}
+/* =========================
+   RENDER / LOAD
+========================= */
+async function loadFromLocal(){
+  let clinics = [];
+  try{
+    clinics = await getData();
+  }catch(err){
+    console.log(err);
+    alert("Ma'lumotni yuklashda xatolik. Apps Script Deploy (Anyone) ekanini tekshiring!");
+    clinics = [];
+  }
 
-function loadFromLocal(){
-  const clinics = getData();
   tbody.innerHTML = "";
 
   clinics.forEach(c=>{
-    const tr = document.createElement("tr");
-
-    // eski ma’lumotlar uchun defaultlar
     c.offer_status = c.offer_status || "";
     c.commercial_status = c.commercial_status || "";
     c.contract_status = c.contract_status || "";
@@ -250,28 +280,31 @@ function loadFromLocal(){
     c.meeting_date = c.meeting_date || "";
     c.comment = c.comment || "";
     c.work_started = c.work_started || "";
+    c.university = c.university || c.name || ""; // sheet ustuni university bo‘lsa ham ishlaydi
+
+    const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td class="clinic">${c.clinic || ""}</td>
+      <td class="univer">${c.university}</td>
 
       <td class="status-box">
-        ${statusSelectHTML("offer", c.offer_status, c.clinic || "")}
+        ${statusSelectHTML("offer", c.offer_status, c.university)}
       </td>
 
       <td><input type="date" value="${c.meeting_date}" disabled></td>
 
       <td class="status-box">
-        ${statusSelectHTML("commercial", c.commercial_status, c.clinic || "")}
+        ${statusSelectHTML("commercial", c.commercial_status, c.university)}
       </td>
 
       <td class="status-box">
-        ${statusSelectHTML("contract", c.contract_status, c.clinic || "")}
+        ${statusSelectHTML("contract", c.contract_status, c.university)}
       </td>
 
       <td>${c.work_started}</td>
 
       <td class="status-box">
-        ${statusSelectHTML("final", c.final_status, c.clinic || "")}
+        ${statusSelectHTML("final", c.final_status, c.university)}
       </td>
 
       <td><input class="comment" value="${c.comment}" placeholder="Koment..." disabled></td>
@@ -282,9 +315,9 @@ function loadFromLocal(){
     `;
     tbody.appendChild(tr);
 
-    // select qiymatini set qilish + edit lock holati
     tr.querySelectorAll("select.status-select").forEach(sel=>{
       const g = sel.dataset.group;
+
       const val =
         g === "offer" ? c.offer_status :
         g === "commercial" ? c.commercial_status :
@@ -292,142 +325,147 @@ function loadFromLocal(){
         c.final_status;
 
       sel.value = val || "";
-      sel.disabled = true; // tahrirlash bosilmaguncha
+      sel.disabled = true;
+      applyStatusColor(sel);
 
-      // rangni select value ga qarab yangilash
-      const wrap = sel.closest(".status-wrap");
-      wrap.classList.remove("status-green","status-red","status-yellow");
-      const cls = statusClass(g, sel.value);
-      if(cls) wrap.classList.add(cls);
-
-      // status o‘zgarganda darrov localstoragega yozish
-      sel.addEventListener("change", ()=>{
-        const clinicsNow = getData();
-        const name = decodeURIComponent(sel.dataset.clinic || "");
-        const idx = clinicsNow.findIndex(x => (x.clinic||"") === name);
+      sel.addEventListener("change", async ()=>{
+        const clinicName = decodeURIComponent(sel.dataset.clinic || "");
+        const list = await getData();
+        const idx = list.findIndex(x => (x.university||x.name||"") === clinicName);
         if(idx === -1) return;
 
-        if(g === "offer") clinicsNow[idx].offer_status = sel.value;
-        if(g === "commercial") clinicsNow[idx].commercial_status = sel.value;
-        if(g === "contract") clinicsNow[idx].contract_status = sel.value;
-        if(g === "final") clinicsNow[idx].final_status = sel.value;
+        list[idx].university = list[idx].university || list[idx].name || clinicName;
 
-        setData(clinicsNow);
+        if(g === "offer") list[idx].offer_status = sel.value;
+        if(g === "commercial") list[idx].commercial_status = sel.value;
+        if(g === "contract") list[idx].contract_status = sel.value;
+        if(g === "final") list[idx].final_status = sel.value;
 
-        // rang yangilash
-        wrap.classList.remove("status-green","status-red","status-yellow");
-        const c2 = statusClass(g, sel.value);
-        if(c2) wrap.classList.add(c2);
+        await setData(list);
+        applyStatusColor(sel);
       });
     });
   });
 }
 
-
+/* =========================
+   LOCK / EDIT SAVE
+========================= */
 function lockRow(tr, lock=true){
   tr.querySelectorAll("input, select").forEach(el=>{
     el.disabled = lock;
   });
 }
 
-function addClinic(){
-    const name = addName.value.trim();
-    const work = addWork.value.trim();
-    if(!name) return alert("Klinika nomini kiriting");
-
-    const clinics = getData();
-
-    if(clinics.some(x => (x.clinic||"").toLowerCase() === name.toLowerCase())){
-        alert("Bu klinika mavjud!");
-        return;
-    }
-
-    clinics.push({
-        clinic: name,
-        work_started: work,
-        meeting_date: "",
-        comment: ""
-    });
-
-    setData(clinics);
-    loadFromLocal();
-
-    addModal.style.display="none";
-    addName.value="";
-    addWork.value="";
-}
-
-function deleteClinic(){
-    const name = deleteName.value.trim();
-    if(!name) return;
-
-    let clinics = getData();
-    clinics = clinics.filter(x => (x.clinic||"").toLowerCase() !== name.toLowerCase());
-
-    setData(clinics);
-    loadFromLocal();
-
-    deleteModal.style.display="none";
-    deleteName.value="";
-}
-
-function toggleEdit(btn){
+async function toggleEdit(btn){
   const tr = btn.closest("tr");
   const editing = btn.dataset.edit === "1";
 
-  // agar hozir edit rejimida bo‘lsa -> Saqlash bosildi
   if(editing){
-    const clinicName = tr.querySelector(".clinic").textContent.trim();
+    const clinicName = tr.querySelector(".univer").textContent.trim();
     const dateVal = tr.querySelector('input[type="date"]').value || "";
     const commentVal = tr.querySelector(".comment").value || "";
 
-    const clinics = getData();
-    const idx = clinics.findIndex(x => (x.clinic||"") === clinicName);
+    const list = await getData();
+    const idx = list.findIndex(x => (x.university||x.name||"") === clinicName);
     if(idx !== -1){
-      clinics[idx].meeting_date = dateVal;
-      clinics[idx].comment = commentVal;
-      setData(clinics);
+      list[idx].university = list[idx].university || list[idx].name || clinicName;
+      list[idx].meeting_date = dateVal;
+      list[idx].comment = commentVal;
+      await setData(list);
     }
   }
 
-  // lock/unlock
   lockRow(tr, editing);
   btn.dataset.edit = editing ? "0" : "1";
   btn.textContent = editing ? "✏️ Tahrirlash" : "💾 Saqlash";
 }
 
-function openAdd(){ addModal.style.display="flex"; }
-function openDelete(){ deleteModal.style.display="flex"; }
-
-addModal.onclick = e => { if(e.target === addModal) addModal.style.display="none"; }
-deleteModal.onclick = e => { if(e.target === deleteModal) deleteModal.style.display="none"; }
-
-function filterTable(){
-    const q = filterInput.value.toLowerCase();
-    tbody.querySelectorAll("tr").forEach(tr=>{
-        const name = tr.querySelector(".clinic").textContent.toLowerCase();
-        tr.style.display = name.includes(q) ? "" : "none";
-    });
+/* =========================
+   ADD / DELETE + MODAL
+========================= */
+function openAdd(){
+  document.getElementById("addModal").style.display = "flex";
+}
+function openDelete(){
+  document.getElementById("deleteModal").style.display = "flex";
 }
 
-async function loadFromRemoteOrLocal(){
-  try{
-    const res = await fetch("data/clinics.json", { cache: "no-store" });
-    if(!res.ok) throw new Error("no remote");
+document.getElementById("addModal")?.addEventListener("click", (e)=>{
+  if(e.target.id === "addModal") e.target.style.display="none";
+});
+document.getElementById("deleteModal")?.addEventListener("click", (e)=>{
+  if(e.target.id === "deleteModal") e.target.style.display="none";
+});
 
-    const remote = await res.json();
+async function addUniver(){
+  const nameEl = document.getElementById("addName");
+  const workEl = document.getElementById("addWork");
+  const university = (nameEl?.value || "").trim();
+  const work_started = (workEl?.value || "").trim();
 
-    localStorage.setItem(LS_KEY, JSON.stringify(remote));
+  if(!university) return alert("Nomini kiriting");
 
-    loadFromLocal();
-  }catch(e){
-    loadFromLocal();
+  const list = await getData();
+
+  if(list.some(x => ((x.university||x.name||"").toLowerCase() === university.toLowerCase()))){
+    alert("Bu allaqachon mavjud!");
+    return;
   }
+
+  list.push({
+    university,
+    work_started,
+    meeting_date:"",
+    comment:"",
+    offer_status:"",
+    commercial_status:"",
+    contract_status:"",
+    final_status:""
+  });
+
+  await setData(list);
+  await loadFromLocal();
+
+  document.getElementById("addModal").style.display="none";
+  if(nameEl) nameEl.value="";
+  if(workEl) workEl.value="";
 }
-window.onload = loadFromRemoteOrLocal;
+
+async function deleteUniver(){
+  const nameEl = document.getElementById("deleteName");
+  const university = (nameEl?.value || "").trim();
+  if(!university) return alert("Nomini kiriting");
+
+  let list = await getData();
+  list = list.filter(x => ((x.university||x.name||"").toLowerCase() !== university.toLowerCase()));
+
+  await setData(list);
+  await loadFromLocal();
+
+  document.getElementById("deleteModal").style.display="none";
+  if(nameEl) nameEl.value="";
+}
+
+/* =========================
+   FILTER
+========================= */
+function filterTable(){
+  const q = (document.getElementById("filterInput")?.value || "").toLowerCase().trim();
+  tbody.querySelectorAll("tr").forEach(tr=>{
+    const name = tr.querySelector(".univer")?.textContent.toLowerCase() || "";
+    tr.style.display = name.includes(q) ? "" : "none";
+  });
+}
+
+/* =========================
+   START
+========================= */
+window.onload = loadFromLocal;
 </script>
 </body>
 </html>
+
 
 
 
