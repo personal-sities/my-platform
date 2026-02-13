@@ -171,13 +171,6 @@ th{color:var(--blue);background:#f9fbff}
 </div>
 
 <script>
-const ADMIN_TOKEN = "secret123"; // o'zingizniki
-
-function isAdmin(){
-  const p = new URLSearchParams(location.search);
-  return p.get("admin") === ADMIN_TOKEN;
-}
-
 const LS_KEY = "clinics_monitor_v1";
 const tbody = document.querySelector("tbody");
 
@@ -431,35 +424,11 @@ async function loadFromRemoteOrLocal(){
     loadFromLocal();
   }
 }
-function applyPermissions(){
-  if(!isAdmin()){
-    // tahrirlash/qo'shish/o'chirish tugmalari yo'qolsin
-    document.querySelectorAll("button").forEach(btn=>{
-      btn.style.display = "none";
-    });
-
-    // hamma input/select disable bo'lsin (faqat ko'rish)
-    document.querySelectorAll("input, select, textarea").forEach(el=>{
-      el.disabled = true;
-    });
-
-    // modallar ochilib qolmasin
-    const addModal = document.getElementById("addModal");
-    const delModal = document.getElementById("deleteModal");
-    if(addModal) addModal.style.display = "none";
-    if(delModal) delModal.style.display = "none";
-  }
-}
-
-window.onload = async () => {
-  await loadFromRemoteOrLocal();
-  applyPermissions();
-};
-
+window.onload = loadFromRemoteOrLocal;
 </script>
-
 </body>
 </html>
+
 
 
 
