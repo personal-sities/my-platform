@@ -1,8 +1,9 @@
-
 let schools = JSON.parse(localStorage.getItem("schools")) || [];
 
-function addUniver() {
-  const name = prompt("Xususiy maktablar nomi");
+function addSchool() {
+  const name = prompt("Maktab nomi");
+  if (!name) return;
+
   const systems = prompt("Qaysi tizimlar yo‘q? (AI Bot, Platforma, Amo CRM)");
 
   schools.push({
@@ -21,19 +22,21 @@ function save() {
 
 function render() {
   univerTable.innerHTML = "";
-  schools.forEach(u => {
+
+  schools.forEach(s => {
     univerTable.innerHTML += `
       <tr>
-        <td>${u.name}</td>
-        <td>${u.systems}</td>
-        <td><input value="${u.comment}"></td>
+        <td>${s.name || ""}</td>
+        <td>${s.systems || ""}</td>
+        <td><input value="${s.comment || ""}"></td>
       </tr>
     `;
   });
 }
 
-function filterUniver() {
+function filterSchool() {
   const q = search.value.toLowerCase();
+
   [...univerTable.rows].forEach(r => {
     r.style.display = r.innerText.toLowerCase().includes(q) ? "" : "none";
   });
