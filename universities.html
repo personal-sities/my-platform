@@ -156,22 +156,31 @@ th{color:var(--blue);background:#f9fbff}
 </div>
 
 <script>
-
-/* =========================
-   LOCALSTORAGE
-========================= */
-const LS_KEY = "universities_monitor_v1";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyp4sm24BL-NaQSUpnhju3Nebt3rV7v2P4Lc21EzFo2WHEPhnD8yGJlcQYN8Z39NdQL/exec";
 const tbody = document.querySelector("tbody");
 
-function getData(){
-  const raw = localStorage.getItem(LS_KEY);
-  if(!raw) return [];
-  try { return JSON.parse(raw) || []; }
-  catch(e){ console.log("Parse error:", e); return []; }
+/* =========================
+   API (Google Sheets)
+========================= */
+async function apiList(){
+  const res = await fetch(`${SCRIPT_URL}?action=list`, { cache:"no-store" });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error || "API list error");
+  return j.data || [];
 }
-function setData(list){
-  localStorage.setItem(LS_KEY, JSON.stringify(list));
+
+async function apiSaveAll(list){
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action:"saveAll", data:list })
+  });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error || "API saveAll error");
 }
+
+async function getData(){ return await apiList(); }
+async function setData(list){ await apiSaveAll(list); }
 
 /* =========================
    STATUS OPTIONS + COLORS
@@ -236,12 +245,19 @@ function applyStatusColor(sel){
 /* =========================
    RENDER / LOAD
 ========================= */
-function loadFromLocal(){
-  const universities = getData();
+async function loadFromLocal(){
+  let universities = [];
+  try{
+    universities = await getData();
+  }catch(err){
+    console.log(err);
+    alert("Ma'lumotni yuklashda xatolik. Apps Script Deploy (Anyone) ekanini tekshiring!");
+    universities = [];
+  }
+
   tbody.innerHTML = "";
 
   universities.forEach(u=>{
-    // default fields (eski datalar buzilmasin)
     u.offer_status = u.offer_status || "";
     u.commercial_status = u.commercial_status || "";
     u.contract_status = u.contract_status || "";
@@ -249,7 +265,7 @@ function loadFromLocal(){
     u.meeting_date = u.meeting_date || "";
     u.comment = u.comment || "";
     u.work_started = u.work_started || "";
-    u.university = u.university || u.name || ""; // eski keylar bo‘lsa moslash
+    u.university = u.university || u.name || "";
 
     const tr = document.createElement("tr");
 
@@ -284,7 +300,6 @@ function loadFromLocal(){
     `;
     tbody.appendChild(tr);
 
-    // select qiymatlarini set qilish + disable
     tr.querySelectorAll("select.status-select").forEach(sel=>{
       const g = sel.dataset.group;
       const val =
@@ -297,23 +312,20 @@ function loadFromLocal(){
       sel.disabled = true;
       applyStatusColor(sel);
 
-      // status o‘zgarganda darrov saqlash
-      sel.addEventListener("change", ()=>{
+      sel.addEventListener("change", async ()=>{
         const uniName = decodeURIComponent(sel.dataset.univer || "");
-        const list = getData();
+        const list = await getData();
         const idx = list.findIndex(x => (x.university||x.name||"") === uniName);
         if(idx === -1) return;
 
-        // keylarni bir xil qilib qo‘yamiz
         list[idx].university = list[idx].university || list[idx].name || uniName;
-        list[idx].name = undefined; // xohlasangiz olib tashlang
 
         if(g === "offer") list[idx].offer_status = sel.value;
         if(g === "commercial") list[idx].commercial_status = sel.value;
         if(g === "contract") list[idx].contract_status = sel.value;
         if(g === "final") list[idx].final_status = sel.value;
 
-        setData(list);
+        await setData(list);
         applyStatusColor(sel);
       });
     });
@@ -329,23 +341,22 @@ function lockRow(tr, lock=true){
   });
 }
 
-function toggleEdit(btn){
+async function toggleEdit(btn){
   const tr = btn.closest("tr");
   const editing = btn.dataset.edit === "1";
 
-  // edit rejimida bo‘lib turib, qayta bossangiz — saqlaydi
   if(editing){
     const univerName = tr.querySelector(".univer").textContent.trim();
     const dateVal = tr.querySelector('input[type="date"]').value || "";
     const commentVal = tr.querySelector(".comment").value || "";
 
-    const list = getData();
+    const list = await getData();
     const idx = list.findIndex(x => (x.university||x.name||"") === univerName);
     if(idx !== -1){
       list[idx].university = list[idx].university || list[idx].name || univerName;
       list[idx].meeting_date = dateVal;
       list[idx].comment = commentVal;
-      setData(list);
+      await setData(list);
     }
   }
 
@@ -364,7 +375,6 @@ function openDelete(){
   document.getElementById("deleteModal").style.display = "flex";
 }
 
-// modal tashqarisini bossangiz yopiladi
 document.getElementById("addModal")?.addEventListener("click", (e)=>{
   if(e.target.id === "addModal") e.target.style.display="none";
 });
@@ -372,7 +382,7 @@ document.getElementById("deleteModal")?.addEventListener("click", (e)=>{
   if(e.target.id === "deleteModal") e.target.style.display="none";
 });
 
-function addUniver(){
+async function addUniver(){
   const nameEl = document.getElementById("addName");
   const workEl = document.getElementById("addWork");
   const university = (nameEl?.value || "").trim();
@@ -380,7 +390,7 @@ function addUniver(){
 
   if(!university) return alert("Universitet nomini kiriting");
 
-  const list = getData();
+  const list = await getData();
 
   if(list.some(x => ((x.university||x.name||"").toLowerCase() === university.toLowerCase()))){
     alert("Bu universitet allaqachon mavjud!");
@@ -398,24 +408,24 @@ function addUniver(){
     final_status:""
   });
 
-  setData(list);
-  loadFromLocal();
+  await setData(list);
+  await loadFromLocal();
 
   document.getElementById("addModal").style.display="none";
   if(nameEl) nameEl.value="";
   if(workEl) workEl.value="";
 }
 
-function deleteUniver(){
+async function deleteUniver(){
   const nameEl = document.getElementById("deleteName");
   const university = (nameEl?.value || "").trim();
   if(!university) return alert("Universitet nomini kiriting");
 
-  let list = getData();
+  let list = await getData();
   list = list.filter(x => ((x.university||x.name||"").toLowerCase() !== university.toLowerCase()));
 
-  setData(list);
-  loadFromLocal();
+  await setData(list);
+  await loadFromLocal();
 
   document.getElementById("deleteModal").style.display="none";
   if(nameEl) nameEl.value="";
@@ -435,22 +445,11 @@ function filterTable(){
 /* =========================
    START
 ========================= */
-async function loadFromRemoteOrLocal(){
-  try{
-    const res = await fetch("data/universities.json", { cache: "no-store" });
-    if(!res.ok) throw new Error("no remote");
-
-    const remote = await res.json();
-
-    localStorage.setItem(LS_KEY, JSON.stringify(remote));
-
-    loadFromLocal();
-  }catch(e){
-    loadFromLocal();
-  }
-}
-window.onload = loadFromRemoteOrLocal;
+window.onload = loadFromLocal;
 </script>
+</body>
+</html>
+
 
 
 
