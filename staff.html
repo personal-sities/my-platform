@@ -91,12 +91,6 @@ body{
 </div>
 
 <script>
-    const ADMIN_TOKEN = "secret123";
-
-function isAdmin(){
-  const p = new URLSearchParams(location.search);
-  return p.get("admin") === ADMIN_TOKEN;
-}
 
 /* =========================
    LOCAL + REMOTE (READ-ONLY FOR OTHERS)
@@ -310,34 +304,12 @@ function done(i, taskName){
 /* =========================
    START
 ========================= */
-function applyPermissions(){
-  if(!isAdmin()){
-
-    document.querySelectorAll("button").forEach(btn=>{
-      btn.style.display = "none";
-    });
-
-    document.querySelectorAll("input, select, textarea").forEach(el=>{
-      el.disabled = true;
-    });
-
-  }
-}
-
-/* =========================
-   START
-========================= */
-window.onload = () => {
-  loadFromRemoteOrLocal();
-  applyPermissions();
-};
 
 window.onload = loadFromRemoteOrLocal;
 </script>
-
-
 </body>
 </html>
+
 
 
 
