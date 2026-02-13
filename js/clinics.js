@@ -1,8 +1,9 @@
-
 let clinics = JSON.parse(localStorage.getItem("clinics")) || [];
 
-function addUniver() {
+function addClinic() {
   const name = prompt("Klinika nomi");
+  if (!name) return;
+
   const systems = prompt("Qaysi tizimlar yo‘q? (AI Bot, Platforma, Amo CRM)");
 
   clinics.push({
@@ -21,19 +22,21 @@ function save() {
 
 function render() {
   univerTable.innerHTML = "";
-  clinics.forEach(u => {
+
+  clinics.forEach(c => {
     univerTable.innerHTML += `
       <tr>
-        <td>${u.name}</td>
-        <td>${u.systems}</td>
-        <td><input value="${u.comment}"></td>
+        <td>${c.name || ""}</td>
+        <td>${c.systems || ""}</td>
+        <td><input value="${c.comment || ""}"></td>
       </tr>
     `;
   });
 }
 
-function filterUniver() {
+function filterClinic() {
   const q = search.value.toLowerCase();
+
   [...univerTable.rows].forEach(r => {
     r.style.display = r.innerText.toLowerCase().includes(q) ? "" : "none";
   });
