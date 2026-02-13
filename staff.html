@@ -92,157 +92,224 @@ body{
 
 <script>
 /* =========================
-   LOCALSTORAGE sozlamalar
+   LOCAL + REMOTE (READ-ONLY FOR OTHERS)
 ========================= */
 const LS_KEY = "staff_app_data_v1";
+
+// ADMIN token (o'zingizga)
+const ADMIN_TOKEN = "12345"; 
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+// BUNI O'ZINGIZGA MAXFIY QILING!
+// masalan: "diyorbek-2026"
+// <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
 let staff = [];
 
 /* =========================
-   LOCALSTORAGE ga saqlash
+   ADMIN tekshiruv
+   - URL: staff.html?admin=12345
+========================= */
+function isAdmin(){
+  const p = new URLSearchParams(location.search);
+  return p.get("admin") === ADMIN_TOKEN;
+}
+
+/* =========================
+   UI ni read-only qilish (admin emaslarga)
+========================= */
+function applyReadOnlyUI(){
+  if(!isAdmin()){
+    // pastdagi "Hodim qo'shish +" tugmasini yashiramiz
+    const addBtn = document.querySelector(".bottom .green");
+    if(addBtn) addBtn.style.display = "none";
+  }
+}
+
+/* =========================
+   LOCALSTORAGE ga saqlash (faqat admin)
 ========================= */
 function saveToLocal(){
-    localStorage.setItem(LS_KEY, JSON.stringify(staff));
+  if(!isAdmin()) return; // boshqalar saqlay olmaydi
+  localStorage.setItem(LS_KEY, JSON.stringify(staff));
 }
 
 /* =========================
    LOCALSTORAGE dan o‘qish
 ========================= */
 function loadFromLocal(){
-    const raw = localStorage.getItem(LS_KEY);
-    if(raw){
-        try{
-            staff = JSON.parse(raw) || [];
-        }catch(e){
-            console.log("Local parse error:", e);
-            staff = [];
-        }
-    }else{
-        staff = [];
+  const raw = localStorage.getItem(LS_KEY);
+  if(raw){
+    try{ staff = JSON.parse(raw) || []; }
+    catch(e){ console.log("Local parse error:", e); staff = []; }
+  }else{
+    staff = [];
+  }
+  render();
+}
+
+/* =========================
+   REMOTE JSON dan o‘qish (hamma ko'radi)
+   - data/staff.json
+========================= */
+async function loadFromRemoteOrLocal(){
+  try{
+    const res = await fetch("data/staff.json", { cache: "no-store" });
+    if(!res.ok) throw new Error("remote not found");
+    const remote = await res.json();
+
+    // remote ma'lumotni hamma ko'rishi uchun staffga qo'yamiz
+    staff = Array.isArray(remote) ? remote : [];
+
+    // admin bo'lsa: localga ham yozib qo'yamiz (ixtiyoriy)
+    if(isAdmin()){
+      localStorage.setItem(LS_KEY, JSON.stringify(staff));
     }
+
     render();
+  }catch(e){
+    // remote ishlamasa localdan ko'rsatadi
+    loadFromLocal();
+  }
 }
 
 /* =========================
    RENDER HTML
 ========================= */
 function render(){
-    const staffContainer = document.getElementById("staffContainer");
-    staffContainer.innerHTML = "";
-    staff.forEach((s,i) => {
-        const card = document.createElement("div");
-        card.className = "card";
+  const staffContainer = document.getElementById("staffContainer");
+  staffContainer.innerHTML = "";
 
-        card.innerHTML = `
-            <div class="name">${s.name}</div>
-            <div>Lavozimi: ${s.role}</div>
-            <div>Ish joyi: ${s.place}</div>
+  staff.forEach((s,i) => {
+    const card = document.createElement("div");
+    card.className = "card";
 
-            <button class="btn" onclick="toggle(this,0)">Vazifalari</button>
-            <button class="btn" onclick="toggle(this,1)">Bajarilgan vazifalar</button>
-            <button class="btn" onclick="toggle(this,2)">Muddati o'tgan vazifalar</button>
-            <button class="btn plus" onclick="addTask(${i})">+</button>
+    // admin bo'lmasa: + tugma va "Bajarildi" tugmalari ko'rinmaydi
+    const plusBtn = isAdmin()
+      ? `<button class="btn plus" onclick="addTask(${i})">+</button>`
+      : "";
 
-            <div class="section">${tasksHTML(s.tasks || [],0,i)}</div>
-            <div class="section">${tasksHTML(s.tasks || [],1,i)}</div>
-            <div class="section">${tasksHTML(s.tasks || [],2,i)}</div>
-        `;
-        staffContainer.appendChild(card);
-    });
+    card.innerHTML = `
+      <div class="name">${s.name || ""}</div>
+      <div>Lavozimi: ${s.role || ""}</div>
+      <div>Ish joyi: ${s.place || ""}</div>
+
+      <button class="btn" onclick="toggle(this,0)">Vazifalari</button>
+      <button class="btn" onclick="toggle(this,1)">Bajarilgan vazifalar</button>
+      <button class="btn" onclick="toggle(this,2)">Muddati o'tgan vazifalar</button>
+
+      ${plusBtn}
+
+      <div class="section">${tasksHTML(s.tasks || [],0,i)}</div>
+      <div class="section">${tasksHTML(s.tasks || [],1,i)}</div>
+      <div class="section">${tasksHTML(s.tasks || [],2,i)}</div>
+    `;
+    staffContainer.appendChild(card);
+  });
+
+  applyReadOnlyUI();
 }
 
 /* =========================
-   TASKS HTML generatsiyasi
+   TASKS HTML
 ========================= */
 function tasksHTML(tasks, status, index){
-    return tasks
-        .filter(t => Number(t.status) === Number(status))
-        .map(t => `
-            <p>
-                ${t.name} | ${t.place} | ${t.date}
-                ${Number(status) === 0 ? `<button onclick="done(${index},'${encodeURIComponent(t.name)}')">Bajarildi</button>` : ""}
-            </p>`
-        ).join("");
+  return tasks
+    .filter(t => Number(t.status) === Number(status))
+    .map(t => `
+      <p>
+        ${t.name || ""} | ${t.place || ""} | ${t.date || ""}
+        ${
+          Number(status) === 0 && isAdmin()
+            ? `<button onclick="done(${index},'${encodeURIComponent(t.name || "")}')">Bajarildi</button>`
+            : ""
+        }
+      </p>
+    `).join("");
 }
 
 /* =========================
-   SECTION toggle funksiyasi
+   SECTION toggle
 ========================= */
 function toggle(btn, i){
-    const sec = btn.parentElement.querySelectorAll(".section")[i];
-    sec.style.display = sec.style.display === "block" ? "none" : "block";
+  const sec = btn.parentElement.querySelectorAll(".section")[i];
+  sec.style.display = sec.style.display === "block" ? "none" : "block";
 }
 
 /* =========================
-   Yangi hodim qo'shish (LOCAL)
+   ADD STAFF (faqat admin)
 ========================= */
 function addStaff(){
-    const name = prompt("Ism familiya:");
-    const role = prompt("Lavozimi:");
-    const place = prompt("Ish joyi:");
-    if(!name) return;
+  if(!isAdmin()) return alert("Sizda o‘zgartirish huquqi yo‘q (faqat ko‘rish).");
 
-    staff.push({
-        name,
-        role: role || "",
-        place: place || "",
-        tasks: []
-    });
+  const name = prompt("Ism familiya:");
+  const role = prompt("Lavozimi:");
+  const place = prompt("Ish joyi:");
+  if(!name) return;
 
-    saveToLocal();
-    render();
+  staff.push({
+    name,
+    role: role || "",
+    place: place || "",
+    tasks: []
+  });
+
+  saveToLocal();
+  render();
 }
 
 /* =========================
-   Yangi vazifa qo'shish (LOCAL)
+   ADD TASK (faqat admin)
 ========================= */
 function addTask(i){
-    const name = prompt("Vazifa nomi:");
-    const date = prompt("Muddat YYYY-MM-DD:");
-    const place = prompt("Bajariladigan joyi:");
-    if(!name) return;
+  if(!isAdmin()) return alert("Sizda o‘zgartirish huquqi yo‘q (faqat ko‘rish).");
 
-    const now = new Date().toISOString().split("T")[0];
-    let status = date < now ? 2 : 0;
+  const name = prompt("Vazifa nomi:");
+  const date = prompt("Muddat YYYY-MM-DD:");
+  const place = prompt("Bajariladigan joyi:");
+  if(!name) return;
 
-    if(!staff[i].tasks) staff[i].tasks = [];
-    staff[i].tasks.push({
-        name,
-        place: place || "",
-        date: date || "",
-        status
-    });
+  const now = new Date().toISOString().split("T")[0];
+  let status = date < now ? 2 : 0;
 
-    saveToLocal();
-    render();
+  if(!staff[i].tasks) staff[i].tasks = [];
+  staff[i].tasks.push({
+    name,
+    place: place || "",
+    date: date || "",
+    status
+  });
+
+  saveToLocal();
+  render();
 }
 
 /* =========================
-   Vazifani bajarildi deb belgilash (LOCAL)
+   DONE (faqat admin)
 ========================= */
 function done(i, taskName){
-    const decoded = decodeURIComponent(taskName);
-    const person = staff[i];
-    if(!person || !person.tasks) return;
+  if(!isAdmin()) return alert("Sizda o‘zgartirish huquqi yo‘q (faqat ko‘rish).");
 
-    // Birinchi mos kelgan taskni "bajarildi" (1) qilamiz
-    const t = person.tasks.find(x => x.name === decoded && Number(x.status) === 0);
-    if(t){
-        t.status = 1;
-    }
+  const decoded = decodeURIComponent(taskName);
+  const person = staff[i];
+  if(!person || !person.tasks) return;
 
-    saveToLocal();
-    render();
+  const t = person.tasks.find(x => x.name === decoded && Number(x.status) === 0);
+  if(t) t.status = 1;
+
+  saveToLocal();
+  render();
 }
 
 /* =========================
-   Sahifa yuklanganda
+   START
 ========================= */
-loadFromLocal();
+window.onload = loadFromRemoteOrLocal;
 </script>
+
 
 </body>
 </html>
+
 
 
 
