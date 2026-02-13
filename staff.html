@@ -91,55 +91,36 @@ body{
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw3zWruhBOGYC7OAeeVzOIYQKw5hTQGQxhaD0vr4xob6-XLTTW_brocHOwIY0yYNtR6dg/exec";
+/* =========================
+   LOCALSTORAGE sozlamalar
+========================= */
+const LS_KEY = "staff_app_data_v1";
 
 let staff = [];
 
 /* =========================
-   GOOGLE SHEETGA YUBORISH (POST)
+   LOCALSTORAGE ga saqlash
 ========================= */
-function sendToSheet(data){
-    fetch(SCRIPT_URL, {
-        method: "POST",
-        body: JSON.stringify(data),
-        headers: {
-            "Content-Type": "application/json"
-        }
-    })
-    .then(res => res.json())
-    .then(() => loadFromSheet())
-    .catch(err => console.log("Sheet error:", err));
+function saveToLocal(){
+    localStorage.setItem(LS_KEY, JSON.stringify(staff));
 }
 
 /* =========================
-   GOOGLE SHEETDAN O‘QISH (GET)
+   LOCALSTORAGE dan o‘qish
 ========================= */
-function loadFromSheet(){
-    fetch(https://script.google.com/macros/s/AKfycbw3zWruhBOGYC7OAeeVzOIYQKw5hTQGQxhaD0vr4xob6-XLTTW_brocHOwIY0yYNtR6dg/exec)
-    .then(res => res.json())
-    .then(data => {
-        staff = data.staff.map(s => ({
-            name: s[0],
-            role: s[1],
-            place: s[2],
-            tasks: []
-        }));
-
-        data.tasks.forEach(t => {
-            let person = staff.find(s => s.name === t[0]);
-            if(person){
-                person.tasks.push({
-                    name: t[1],
-                    place: t[2],
-                    date: t[3],
-                    status: Number(t[4])
-                });
-            }
-        });
-
-        render();
-    })
-    .catch(err => console.log("Load error:", err));
+function loadFromLocal(){
+    const raw = localStorage.getItem(LS_KEY);
+    if(raw){
+        try{
+            staff = JSON.parse(raw) || [];
+        }catch(e){
+            console.log("Local parse error:", e);
+            staff = [];
+        }
+    }else{
+        staff = [];
+    }
+    render();
 }
 
 /* =========================
@@ -162,9 +143,9 @@ function render(){
             <button class="btn" onclick="toggle(this,2)">Muddati o'tgan vazifalar</button>
             <button class="btn plus" onclick="addTask(${i})">+</button>
 
-            <div class="section">${tasksHTML(s.tasks,0,i)}</div>
-            <div class="section">${tasksHTML(s.tasks,1,i)}</div>
-            <div class="section">${tasksHTML(s.tasks,2,i)}</div>
+            <div class="section">${tasksHTML(s.tasks || [],0,i)}</div>
+            <div class="section">${tasksHTML(s.tasks || [],1,i)}</div>
+            <div class="section">${tasksHTML(s.tasks || [],2,i)}</div>
         `;
         staffContainer.appendChild(card);
     });
@@ -175,11 +156,11 @@ function render(){
 ========================= */
 function tasksHTML(tasks, status, index){
     return tasks
-        .filter(t => t.status === status)
+        .filter(t => Number(t.status) === Number(status))
         .map(t => `
             <p>
                 ${t.name} | ${t.place} | ${t.date}
-                ${status === 0 ? `<button onclick="done(${index},'${encodeURIComponent(t.name)}')">Bajarildi</button>` : ""}
+                ${Number(status) === 0 ? `<button onclick="done(${index},'${encodeURIComponent(t.name)}')">Bajarildi</button>` : ""}
             </p>`
         ).join("");
 }
@@ -193,7 +174,7 @@ function toggle(btn, i){
 }
 
 /* =========================
-   Yangi hodim qo'shish
+   Yangi hodim qo'shish (LOCAL)
 ========================= */
 function addStaff(){
     const name = prompt("Ism familiya:");
@@ -201,14 +182,19 @@ function addStaff(){
     const place = prompt("Ish joyi:");
     if(!name) return;
 
-    sendToSheet({
-        page: "staff_add",
-        formData: {name, role, place}
+    staff.push({
+        name,
+        role: role || "",
+        place: place || "",
+        tasks: []
     });
+
+    saveToLocal();
+    render();
 }
 
 /* =========================
-   Yangi vazifa qo'shish
+   Yangi vazifa qo'shish (LOCAL)
 ========================= */
 function addTask(i){
     const name = prompt("Vazifa nomi:");
@@ -219,38 +205,44 @@ function addTask(i){
     const now = new Date().toISOString().split("T")[0];
     let status = date < now ? 2 : 0;
 
-    sendToSheet({
-        page: "task_add",
-        formData: {
-            staff: staff[i].name,
-            name,
-            place,
-            date,
-            status
-        }
+    if(!staff[i].tasks) staff[i].tasks = [];
+    staff[i].tasks.push({
+        name,
+        place: place || "",
+        date: date || "",
+        status
     });
+
+    saveToLocal();
+    render();
 }
 
 /* =========================
-   Vazifani bajarildi deb belgilash
+   Vazifani bajarildi deb belgilash (LOCAL)
 ========================= */
 function done(i, taskName){
-    sendToSheet({
-        page: "task_done",
-        formData: {
-            staff: staff[i].name,
-            task: decodeURIComponent(taskName)
-        }
-    });
+    const decoded = decodeURIComponent(taskName);
+    const person = staff[i];
+    if(!person || !person.tasks) return;
+
+    // Birinchi mos kelgan taskni "bajarildi" (1) qilamiz
+    const t = person.tasks.find(x => x.name === decoded && Number(x.status) === 0);
+    if(t){
+        t.status = 1;
+    }
+
+    saveToLocal();
+    render();
 }
 
 /* =========================
-   Sahifa yuklanganda ma'lumotlarni yuklash
+   Sahifa yuklanganda
 ========================= */
-loadFromSheet();
+loadFromLocal();
 </script>
 
 </body>
 </html>
+
 
 
