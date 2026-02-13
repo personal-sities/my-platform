@@ -443,11 +443,28 @@ function filterTable(){
 /* =========================
    START
 ========================= */
-window.onload = loadFromLocal;
+async function loadFromRemoteOrLocal(){
+  try{
+    const res = await fetch("data/schools.json", { cache: "no-store" });
+    if(!res.ok) throw new Error("no remote");
+
+    const remote = await res.json();
+
+    localStorage.setItem(LS_KEY, JSON.stringify(remote));
+
+    loadFromLocal();
+  }catch(e){
+    loadFromLocal();
+  }
+}
+
+window.onload = loadFromRemoteOrLocal;
+
 </script>
 
 </body>
 </html>
+
 
 
 
