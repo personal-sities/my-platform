@@ -114,7 +114,7 @@ function sendToSheet(data){
    GOOGLE SHEETDAN O‘QISH
 ========================= */
 function loadFromSheet(){
-  fetch("https://script.google.com/macros/s/AKfycbzW179_0iIFL4ak53_Xw0Lt7z5G_4y_GyCgRwNm97GhXjnEpae9baeFv8kXzTM2oKg7JQ/exec")
+  fetch("SCRIPT_URL")
   .then(res=>res.json())
   .then(data=>{
       staff = data.staff.map(s=>({
@@ -251,6 +251,7 @@ loadFromSheet();
 
 </body>
 </html>
+
 
 
 
