@@ -99,7 +99,7 @@ let staff = [];
    GOOGLE SHEETGA YUBORISH
 ========================= */
 function sendToSheet(data){
-    fetch(SCRIPT_URL,{
+    fetch("https://script.google.com/macros/s/AKfycbyj_p0oHPKRI1YasBlbNN67gZCOd4OYVZOf5ySNumWYXsk0PoRBM4yLZoJTAWWlBAViHA/exec",{
         method:"POST",
         body:JSON.stringify(data),
         headers:{
@@ -251,4 +251,5 @@ loadFromSheet();
 
 </body>
 </html>
+
 
