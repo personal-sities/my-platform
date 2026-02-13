@@ -156,38 +156,283 @@ th{color:var(--blue);background:#f9fbff}
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbz22BJQq97A7636E2q4jWYIcGD6Len1VByHWKsU-1Or3f7v2Wf6mXaUgV91wwIjJ5l4hQ/exec";
+/* =========================
+   LOCALSTORAGE
+========================= */
+const LS_KEY = "universities_monitor_v1";
 const tbody = document.querySelector("tbody");
 
-function loadFromSheet(){
-    fetch(SCRIPT_URL)
-    .then(res=>res.json())
-    .then(data=>{
-        tbody.innerHTML="";
-        if(!data.universities) return;
-
-        data.universities.forEach(u=>{
-            const tr=document.createElement("tr");
-
-            tr.innerHTML=`
-<td class="univer">${u[0]}</td>
-<td class="status-box"></td>
-<td><input type="date" value="${u[2]||""}"></td>
-<td class="status-box"></td>
-<td class="status-box"></td>
-<td>${u[1]||""}</td>
-<td class="status-box"></td>
-<td><input class="comment" value="${u[3]||""}"></td>
-<td><button class="btn">✏️</button></td>
-`;
-            tbody.appendChild(tr);
-        });
-    });
+function getData(){
+  const raw = localStorage.getItem(LS_KEY);
+  if(!raw) return [];
+  try { return JSON.parse(raw) || []; }
+  catch(e){ console.log("Parse error:", e); return []; }
+}
+function setData(list){
+  localStorage.setItem(LS_KEY, JSON.stringify(list));
 }
 
-window.onload = loadFromSheet;
+/* =========================
+   STATUS OPTIONS + COLORS
+========================= */
+const STATUS = {
+  offer: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Berildi", t:"Berildi", c:"status-green" },
+    { v:"O'ylab ko'rmoqda", t:"O'ylab ko'rmoqda", c:"status-yellow" },
+    { v:"Rad etdi", t:"Rad etdi", c:"status-red" },
+    { v:"Rozi bo'ldi", t:"Rozi bo'ldi", c:"status-green" },
+  ],
+  commercial: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Berildi", t:"Berildi", c:"status-green" },
+    { v:"O'ylab ko'rmoqda", t:"O'ylab ko'rmoqda", c:"status-yellow" },
+    { v:"Rad etildi", t:"Rad etildi", c:"status-red" },
+  ],
+  contract: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Tuzildi", t:"Tuzildi", c:"status-green" },
+    { v:"Tuzilmadi", t:"Tuzilmadi", c:"status-red" },
+    { v:"O'ylab ko'rmoqda", t:"O'ylab ko'rmoqda", c:"status-yellow" },
+  ],
+  final: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Yakunlandi", t:"Yakunlandi", c:"status-green" },
+    { v:"Yakunlanmadi", t:"Yakunlanmadi", c:"status-red" },
+    { v:"Jarayonda", t:"Jarayonda", c:"status-yellow" },
+  ]
+};
+
+function statusClass(groupKey, value){
+  const item = STATUS[groupKey].find(x => x.v === value);
+  return item ? item.c : "";
+}
+
+function statusSelectHTML(groupKey, value, univerName){
+  const opts = STATUS[groupKey].map(o =>
+    `<option value="${String(o.v).replace(/"/g,'&quot;')}">${o.t}</option>`
+  ).join("");
+
+  return `
+    <div class="status-wrap ${statusClass(groupKey, value)}">
+      <select class="status-select"
+              data-group="${groupKey}"
+              data-univer="${encodeURIComponent(univerName)}">
+        ${opts}
+      </select>
+    </div>
+  `;
+}
+
+function applyStatusColor(sel){
+  const wrap = sel.closest(".status-wrap");
+  if(!wrap) return;
+  wrap.classList.remove("status-green","status-red","status-yellow");
+  const cls = statusClass(sel.dataset.group, sel.value);
+  if(cls) wrap.classList.add(cls);
+}
+
+/* =========================
+   RENDER / LOAD
+========================= */
+function loadFromLocal(){
+  const universities = getData();
+  tbody.innerHTML = "";
+
+  universities.forEach(u=>{
+    // default fields (eski datalar buzilmasin)
+    u.offer_status = u.offer_status || "";
+    u.commercial_status = u.commercial_status || "";
+    u.contract_status = u.contract_status || "";
+    u.final_status = u.final_status || "";
+    u.meeting_date = u.meeting_date || "";
+    u.comment = u.comment || "";
+    u.work_started = u.work_started || "";
+    u.university = u.university || u.name || ""; // eski keylar bo‘lsa moslash
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td class="univer">${u.university}</td>
+
+      <td class="status-box">
+        ${statusSelectHTML("offer", u.offer_status, u.university)}
+      </td>
+
+      <td><input type="date" value="${u.meeting_date}" disabled></td>
+
+      <td class="status-box">
+        ${statusSelectHTML("commercial", u.commercial_status, u.university)}
+      </td>
+
+      <td class="status-box">
+        ${statusSelectHTML("contract", u.contract_status, u.university)}
+      </td>
+
+      <td>${u.work_started}</td>
+
+      <td class="status-box">
+        ${statusSelectHTML("final", u.final_status, u.university)}
+      </td>
+
+      <td><input class="comment" value="${u.comment}" placeholder="Koment..." disabled></td>
+
+      <td>
+        <button class="btn" data-edit="0" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+
+    // select qiymatlarini set qilish + disable
+    tr.querySelectorAll("select.status-select").forEach(sel=>{
+      const g = sel.dataset.group;
+      const val =
+        g === "offer" ? u.offer_status :
+        g === "commercial" ? u.commercial_status :
+        g === "contract" ? u.contract_status :
+        u.final_status;
+
+      sel.value = val || "";
+      sel.disabled = true;
+      applyStatusColor(sel);
+
+      // status o‘zgarganda darrov saqlash
+      sel.addEventListener("change", ()=>{
+        const uniName = decodeURIComponent(sel.dataset.univer || "");
+        const list = getData();
+        const idx = list.findIndex(x => (x.university||x.name||"") === uniName);
+        if(idx === -1) return;
+
+        // keylarni bir xil qilib qo‘yamiz
+        list[idx].university = list[idx].university || list[idx].name || uniName;
+        list[idx].name = undefined; // xohlasangiz olib tashlang
+
+        if(g === "offer") list[idx].offer_status = sel.value;
+        if(g === "commercial") list[idx].commercial_status = sel.value;
+        if(g === "contract") list[idx].contract_status = sel.value;
+        if(g === "final") list[idx].final_status = sel.value;
+
+        setData(list);
+        applyStatusColor(sel);
+      });
+    });
+  });
+}
+
+/* =========================
+   LOCK / EDIT SAVE
+========================= */
+function lockRow(tr, lock=true){
+  tr.querySelectorAll("input, select").forEach(el=>{
+    el.disabled = lock;
+  });
+}
+
+function toggleEdit(btn){
+  const tr = btn.closest("tr");
+  const editing = btn.dataset.edit === "1";
+
+  // edit rejimida bo‘lib turib, qayta bossangiz — saqlaydi
+  if(editing){
+    const univerName = tr.querySelector(".univer").textContent.trim();
+    const dateVal = tr.querySelector('input[type="date"]').value || "";
+    const commentVal = tr.querySelector(".comment").value || "";
+
+    const list = getData();
+    const idx = list.findIndex(x => (x.university||x.name||"") === univerName);
+    if(idx !== -1){
+      list[idx].university = list[idx].university || list[idx].name || univerName;
+      list[idx].meeting_date = dateVal;
+      list[idx].comment = commentVal;
+      setData(list);
+    }
+  }
+
+  lockRow(tr, editing);
+  btn.dataset.edit = editing ? "0" : "1";
+  btn.textContent = editing ? "✏️ Tahrirlash" : "💾 Saqlash";
+}
+
+/* =========================
+   ADD / DELETE + MODAL
+========================= */
+function openAdd(){
+  document.getElementById("addModal").style.display = "flex";
+}
+function openDelete(){
+  document.getElementById("deleteModal").style.display = "flex";
+}
+
+// modal tashqarisini bossangiz yopiladi
+document.getElementById("addModal")?.addEventListener("click", (e)=>{
+  if(e.target.id === "addModal") e.target.style.display="none";
+});
+document.getElementById("deleteModal")?.addEventListener("click", (e)=>{
+  if(e.target.id === "deleteModal") e.target.style.display="none";
+});
+
+function addUniver(){
+  const nameEl = document.getElementById("addName");
+  const workEl = document.getElementById("addWork");
+  const university = (nameEl?.value || "").trim();
+  const work_started = (workEl?.value || "").trim();
+
+  if(!university) return alert("Universitet nomini kiriting");
+
+  const list = getData();
+
+  if(list.some(x => ((x.university||x.name||"").toLowerCase() === university.toLowerCase()))){
+    alert("Bu universitet allaqachon mavjud!");
+    return;
+  }
+
+  list.push({
+    university,
+    work_started,
+    meeting_date:"",
+    comment:"",
+    offer_status:"",
+    commercial_status:"",
+    contract_status:"",
+    final_status:""
+  });
+
+  setData(list);
+  loadFromLocal();
+
+  document.getElementById("addModal").style.display="none";
+  if(nameEl) nameEl.value="";
+  if(workEl) workEl.value="";
+}
+
+function deleteUniver(){
+  const nameEl = document.getElementById("deleteName");
+  const university = (nameEl?.value || "").trim();
+  if(!university) return alert("Universitet nomini kiriting");
+
+  let list = getData();
+  list = list.filter(x => ((x.university||x.name||"").toLowerCase() !== university.toLowerCase()));
+
+  setData(list);
+  loadFromLocal();
+
+  document.getElementById("deleteModal").style.display="none";
+  if(nameEl) nameEl.value="";
+}
+
+/* =========================
+   FILTER
+========================= */
+function filterTable(){
+  const q = (document.getElementById("filterInput")?.value || "").toLowerCase().trim();
+  tbody.querySelectorAll("tr").forEach(tr=>{
+    const name = tr.querySelector(".univer")?.textContent.toLowerCase() || "";
+    tr.style.display = name.includes(q) ? "" : "none";
+  });
+}
+
+/* =========================
+   START
+========================= */
+window.onload = loadFromLocal;
 </script>
-
-</body>
-</html>
-
