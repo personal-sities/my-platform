@@ -83,33 +83,31 @@ function sendToSheet(data){
    GOOGLE SHEETDAN O‘QISH
 ========================= */
 function loadFromSheet(){
-  fetch(https://script.google.com/macros/s/AKfycbzHyXa-cMaGoap1Ccakai01rU_ihAmvfoQHeDFpK4zv8Lv30ZbZ8UWyQHyA0B9HvKIobA/exec)
-  .then(res=>res.json())
-  .then(data=>{
-      staff = data.staff.map(s=>{
-          return {
-              name:s[0],
-              role:s[1],
-              place:s[2],
-              tasks:[]
-          }
-      });
+  fetch("https://script.google.com/macros/s/AKfycbzHyXa-cMaGoap1Ccakai01rU_ihAmvfoQHeDFpK4zv8Lv30ZbZ8UWyQHyA0B9HvKIobA/exec")
+    .then(res => res.json())
+    .then(data => {
+        staff = data.staff.map(s => ({
+            name: s[0],
+            role: s[1],
+            place: s[2],
+            tasks: []
+        }));
 
-      data.tasks.forEach(t=>{
-          let person = staff.find(s=>s.name===t[0]);
-          if(person){
-              person.tasks.push({
-                  name:t[1],
-                  place:t[2],
-                  date:t[3],
-                  status:Number(t[4])
-              });
-          }
-      });
+        data.tasks.forEach(t=>{
+            let person = staff.find(s => s.name === t[0]);
+            if(person){
+                person.tasks.push({
+                    name: t[1],
+                    place: t[2],
+                    date: t[3],
+                    status: Number(t[4])
+                });
+            }
+        });
 
-      render();
-  })
-  .catch(err=>console.log("Load error:",err));
+        render();
+    })
+    .catch(err => console.log("Load error:", err));
 }
 
 /* =========================
@@ -222,6 +220,7 @@ loadFromSheet();
 </script>
 </body>
 </html>
+
 
 
 
