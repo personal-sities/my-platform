@@ -91,7 +91,7 @@ body{
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec"; // <== Bu yerga o'zingizning Apps Script Web App URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyj_p0oHPKRI1YasBlbNN67gZCOd4OYVZOf5ySNumWYXsk0PoRBM4yLZoJTAWWlBAViHA/exec"; // <== Bu yerga o'zingizning Apps Script Web App URL
 
 let staff = [];
 
@@ -114,7 +114,7 @@ function sendToSheet(data){
    GOOGLE SHEETDAN O‘QISH
 ========================= */
 function loadFromSheet(){
-  fetch(SCRIPT_URL)
+  fetch("https://script.google.com/macros/s/AKfycbyj_p0oHPKRI1YasBlbNN67gZCOd4OYVZOf5ySNumWYXsk0PoRBM4yLZoJTAWWlBAViHA/exec")
   .then(res=>res.json())
   .then(data=>{
       staff = data.staff.map(s=>({
@@ -251,3 +251,4 @@ loadFromSheet();
 
 </body>
 </html>
+
