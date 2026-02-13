@@ -91,7 +91,7 @@ body{
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwnpFqk_OGy2LXI68oVEEZELPwDZxJFJocq-VSoohRQ3s2A8BOVgm35d51RYAaz22Ntqg/exec"; // <== Bu yerga o'zingizning Apps Script Web App URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwnpFqk_OGy2LXI68oVEEZELPwDZxJFJocq-VSoohRQ3s2A8BOVgm35d51RYAaz22Ntqg/exec";
 
 let staff = [];
 
@@ -103,9 +103,10 @@ function sendToSheet(data){
         method:"POST",
         body:JSON.stringify(data),
         headers:{
-            "Content-Type":"application/json"
+            "Content-Type":"text/plain;charset=utf-8"   // 🔥 CORS FIX
         }
     })
+    .then(res=>res.text())
     .then(()=>loadFromSheet())
     .catch(err=>console.log("Sheet error:",err));
 }
@@ -114,7 +115,7 @@ function sendToSheet(data){
    GOOGLE SHEETDAN O‘QISH
 ========================= */
 function loadFromSheet(){
-  fetch("SCRIPT_URL")
+  fetch(SCRIPT_URL)   // 🔥 BU YERDA STRING EMAS
   .then(res=>res.json())
   .then(data=>{
       staff = data.staff.map(s=>({
@@ -251,6 +252,7 @@ loadFromSheet();
 
 </body>
 </html>
+
 
 
 
