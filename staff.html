@@ -91,7 +91,7 @@ body{
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyj_p0oHPKRI1YasBlbNN67gZCOd4OYVZOf5ySNumWYXsk0PoRBM4yLZoJTAWWlBAViHA/exec"; // <== Bu yerga o'zingizning Apps Script Web App URL
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzW179_0iIFL4ak53_Xw0Lt7z5G_4y_GyCgRwNm97GhXjnEpae9baeFv8kXzTM2oKg7JQ/exec"; // <== Bu yerga o'zingizning Apps Script Web App URL
 
 let staff = [];
 
@@ -99,7 +99,7 @@ let staff = [];
    GOOGLE SHEETGA YUBORISH
 ========================= */
 function sendToSheet(data){
-    fetch("https://script.google.com/macros/s/AKfycbyj_p0oHPKRI1YasBlbNN67gZCOd4OYVZOf5ySNumWYXsk0PoRBM4yLZoJTAWWlBAViHA/exec",{
+    fetch("https://script.google.com/macros/s/AKfycbzW179_0iIFL4ak53_Xw0Lt7z5G_4y_GyCgRwNm97GhXjnEpae9baeFv8kXzTM2oKg7JQ/exec",{
         method:"POST",
         body:JSON.stringify(data),
         headers:{
@@ -114,7 +114,7 @@ function sendToSheet(data){
    GOOGLE SHEETDAN O‘QISH
 ========================= */
 function loadFromSheet(){
-  fetch("https://script.google.com/macros/s/AKfycbyj_p0oHPKRI1YasBlbNN67gZCOd4OYVZOf5ySNumWYXsk0PoRBM4yLZoJTAWWlBAViHA/exec")
+  fetch("https://script.google.com/macros/s/AKfycbzW179_0iIFL4ak53_Xw0Lt7z5G_4y_GyCgRwNm97GhXjnEpae9baeFv8kXzTM2oKg7JQ/exec")
   .then(res=>res.json())
   .then(data=>{
       staff = data.staff.map(s=>({
@@ -251,5 +251,6 @@ loadFromSheet();
 
 </body>
 </html>
+
 
 
