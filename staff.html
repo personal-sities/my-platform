@@ -60,7 +60,7 @@ body{
 
 <script>
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw7vpSDqQGAszg66uYMvpK-iOKDzQesRwOHUBO--oFryU_lXWqS1zIzT5UNeFTuD9E3KA/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzHyXa-cMaGoap1Ccakai01rU_ihAmvfoQHeDFpK4zv8Lv30ZbZ8UWyQHyA0B9HvKIobA/exec";
 
 let staff = [];
 
@@ -83,7 +83,7 @@ function sendToSheet(data){
    GOOGLE SHEETDAN O‘QISH
 ========================= */
 function loadFromSheet(){
-  fetch(SCRIPT_URL)
+  fetch(https://script.google.com/macros/s/AKfycbzHyXa-cMaGoap1Ccakai01rU_ihAmvfoQHeDFpK4zv8Lv30ZbZ8UWyQHyA0B9HvKIobA/exec)
   .then(res=>res.json())
   .then(data=>{
       staff = data.staff.map(s=>{
@@ -222,6 +222,7 @@ loadFromSheet();
 </script>
 </body>
 </html>
+
 
 
 
