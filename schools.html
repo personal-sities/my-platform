@@ -171,22 +171,31 @@ th{color:var(--blue);background:#f9fbff}
 </div>
 
 <script>
-
-/* =========================
-   LOCALSTORAGE
-========================= */
-const LS_KEY = "schools_monitor_v1";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQEvzD2ZUS4pgJ19asiFWU5vv9v7QwaULzHPVTnt2waLCfnRuyrkfhgbMFAkpTkkSX/exec";
 const tbody = document.querySelector("tbody");
 
-function getData(){
-  const raw = localStorage.getItem(LS_KEY);
-  if(!raw) return [];
-  try { return JSON.parse(raw) || []; }
-  catch(e){ console.log("Parse error:", e); return []; }
+/* =========================
+   API (Google Sheets)
+========================= */
+async function apiList(){
+  const res = await fetch(`${SCRIPT_URL}?action=list`, { cache:"no-store" });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error || "API list error");
+  return j.data || [];
 }
-function setData(list){
-  localStorage.setItem(LS_KEY, JSON.stringify(list));
+
+async function apiSaveAll(list){
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action:"saveAll", data:list })
+  });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error || "API saveAll error");
 }
+
+async function getData(){ return await apiList(); }
+async function setData(list){ await apiSaveAll(list); }
 
 /* =========================
    STATUS OPTIONS + COLORS
@@ -251,8 +260,16 @@ function applyStatusColor(sel){
 /* =========================
    RENDER / LOAD
 ========================= */
-function loadFromLocal(){
-  const schools = getData();
+async function loadFromLocal(){
+  let schools = [];
+  try{
+    schools = await getData();
+  }catch(err){
+    console.log(err);
+    alert("Ma'lumotni yuklashda xatolik. Apps Script Deploy (Anyone) ekanini tekshiring!");
+    schools = [];
+  }
+
   tbody.innerHTML = "";
 
   schools.forEach(s=>{
@@ -263,32 +280,31 @@ function loadFromLocal(){
     s.meeting_date = s.meeting_date || "";
     s.comment = s.comment || "";
     s.work_started = s.work_started || "";
-    s.school = s.school || s.name || ""; // eski key bo‘lsa
+    s.university = s.university || s.name || ""; // sheetda ustun nomi university bo‘lgani uchun shu qoladi
 
     const tr = document.createElement("tr");
 
-    // MUHIM: bu yerda 9 ta <td> bor (thead bilan mos!)
     tr.innerHTML = `
-      <td class="school">${s.school}</td>
+      <td class="univer">${s.university}</td>
 
       <td class="status-box">
-        ${statusSelectHTML("offer", s.offer_status, s.school)}
+        ${statusSelectHTML("offer", s.offer_status, s.university)}
       </td>
 
       <td><input type="date" value="${s.meeting_date}" disabled></td>
 
       <td class="status-box">
-        ${statusSelectHTML("commercial", s.commercial_status, s.school)}
+        ${statusSelectHTML("commercial", s.commercial_status, s.university)}
       </td>
 
       <td class="status-box">
-        ${statusSelectHTML("contract", s.contract_status, s.school)}
+        ${statusSelectHTML("contract", s.contract_status, s.university)}
       </td>
 
       <td>${s.work_started}</td>
 
       <td class="status-box">
-        ${statusSelectHTML("final", s.final_status, s.school)}
+        ${statusSelectHTML("final", s.final_status, s.university)}
       </td>
 
       <td><input class="comment" value="${s.comment}" placeholder="Koment..." disabled></td>
@@ -297,11 +313,11 @@ function loadFromLocal(){
         <button class="btn" data-edit="0" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
       </td>
     `;
-
     tbody.appendChild(tr);
 
     tr.querySelectorAll("select.status-select").forEach(sel=>{
       const g = sel.dataset.group;
+
       const val =
         g === "offer" ? s.offer_status :
         g === "commercial" ? s.commercial_status :
@@ -312,20 +328,20 @@ function loadFromLocal(){
       sel.disabled = true;
       applyStatusColor(sel);
 
-      sel.addEventListener("change", ()=>{
+      sel.addEventListener("change", async ()=>{
         const schoolName = decodeURIComponent(sel.dataset.school || "");
-        const list = getData();
-        const idx = list.findIndex(x => (x.school||x.name||"") === schoolName);
+        const list = await getData();
+        const idx = list.findIndex(x => (x.university||x.name||"") === schoolName);
         if(idx === -1) return;
 
-        list[idx].school = list[idx].school || list[idx].name || schoolName;
+        list[idx].university = list[idx].university || list[idx].name || schoolName;
 
         if(g === "offer") list[idx].offer_status = sel.value;
         if(g === "commercial") list[idx].commercial_status = sel.value;
         if(g === "contract") list[idx].contract_status = sel.value;
         if(g === "final") list[idx].final_status = sel.value;
 
-        setData(list);
+        await setData(list);
         applyStatusColor(sel);
       });
     });
@@ -341,22 +357,22 @@ function lockRow(tr, lock=true){
   });
 }
 
-function toggleEdit(btn){
+async function toggleEdit(btn){
   const tr = btn.closest("tr");
   const editing = btn.dataset.edit === "1";
 
   if(editing){
-    const schoolName = tr.querySelector(".school").textContent.trim();
+    const schoolName = tr.querySelector(".univer").textContent.trim();
     const dateVal = tr.querySelector('input[type="date"]').value || "";
     const commentVal = tr.querySelector(".comment").value || "";
 
-    const list = getData();
-    const idx = list.findIndex(x => (x.school||x.name||"") === schoolName);
+    const list = await getData();
+    const idx = list.findIndex(x => (x.university||x.name||"") === schoolName);
     if(idx !== -1){
-      list[idx].school = list[idx].school || list[idx].name || schoolName;
+      list[idx].university = list[idx].university || list[idx].name || schoolName;
       list[idx].meeting_date = dateVal;
       list[idx].comment = commentVal;
-      setData(list);
+      await setData(list);
     }
   }
 
@@ -382,22 +398,23 @@ document.getElementById("deleteModal")?.addEventListener("click", (e)=>{
   if(e.target.id === "deleteModal") e.target.style.display="none";
 });
 
-function addSchool(){
+async function addUniver(){
   const nameEl = document.getElementById("addName");
   const workEl = document.getElementById("addWork");
-  const school = (nameEl?.value || "").trim();
+  const university = (nameEl?.value || "").trim();     // ustun nomi university bo‘lgani uchun shu qoladi
   const work_started = (workEl?.value || "").trim();
 
-  if(!school) return alert("Maktab nomini kiriting");
+  if(!university) return alert("Nomini kiriting");
 
-  const list = getData();
-  if(list.some(x => ((x.school||x.name||"").toLowerCase() === school.toLowerCase()))){
-    alert("Bu maktab allaqachon mavjud!");
+  const list = await getData();
+
+  if(list.some(x => ((x.university||x.name||"").toLowerCase() === university.toLowerCase()))){
+    alert("Bu allaqachon mavjud!");
     return;
   }
 
   list.push({
-    school,
+    university,
     work_started,
     meeting_date:"",
     comment:"",
@@ -407,24 +424,24 @@ function addSchool(){
     final_status:""
   });
 
-  setData(list);
-  loadFromLocal();
+  await setData(list);
+  await loadFromLocal();
 
   document.getElementById("addModal").style.display="none";
   if(nameEl) nameEl.value="";
   if(workEl) workEl.value="";
 }
 
-function deleteSchool(){
+async function deleteUniver(){
   const nameEl = document.getElementById("deleteName");
-  const school = (nameEl?.value || "").trim();
-  if(!school) return alert("Maktab nomini kiriting");
+  const university = (nameEl?.value || "").trim();
+  if(!university) return alert("Nomini kiriting");
 
-  let list = getData();
-  list = list.filter(x => ((x.school||x.name||"").toLowerCase() !== school.toLowerCase()));
+  let list = await getData();
+  list = list.filter(x => ((x.university||x.name||"").toLowerCase() !== university.toLowerCase()));
 
-  setData(list);
-  loadFromLocal();
+  await setData(list);
+  await loadFromLocal();
 
   document.getElementById("deleteModal").style.display="none";
   if(nameEl) nameEl.value="";
@@ -436,7 +453,7 @@ function deleteSchool(){
 function filterTable(){
   const q = (document.getElementById("filterInput")?.value || "").toLowerCase().trim();
   tbody.querySelectorAll("tr").forEach(tr=>{
-    const name = tr.querySelector(".school")?.textContent.toLowerCase() || "";
+    const name = tr.querySelector(".univer")?.textContent.toLowerCase() || "";
     tr.style.display = name.includes(q) ? "" : "none";
   });
 }
@@ -444,26 +461,11 @@ function filterTable(){
 /* =========================
    START
 ========================= */
-async function loadFromRemoteOrLocal(){
-  try{
-    const res = await fetch("data/schools.json", { cache: "no-store" });
-    if(!res.ok) throw new Error("no remote");
-
-    const remote = await res.json();
-
-    localStorage.setItem(LS_KEY, JSON.stringify(remote));
-
-    loadFromLocal();
-  }catch(e){
-    loadFromLocal();
-  }
-}
-window.onload = loadFromRemoteOrLocal;
-
+window.onload = loadFromLocal;
 </script>
-
 </body>
 </html>
+
 
 
 
