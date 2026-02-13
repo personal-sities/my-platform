@@ -172,177 +172,281 @@ th{color:var(--blue);background:#f9fbff}
 
 <script>
 /* =========================
-   LOCALSTORAGE sozlama
+   LOCALSTORAGE
 ========================= */
 const LS_KEY = "schools_monitor_v1";
-
 const tbody = document.querySelector("tbody");
 
 function getData(){
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return [];
-    try{ return JSON.parse(raw) || []; }
-    catch(e){ console.log("Local parse error:", e); return []; }
+  const raw = localStorage.getItem(LS_KEY);
+  if(!raw) return [];
+  try { return JSON.parse(raw) || []; }
+  catch(e){ console.log("Parse error:", e); return []; }
 }
-
 function setData(list){
-    localStorage.setItem(LS_KEY, JSON.stringify(list));
+  localStorage.setItem(LS_KEY, JSON.stringify(list));
 }
 
 /* =========================
-   LOCAL LOAD
+   STATUS OPTIONS + COLORS
+========================= */
+const STATUS = {
+  offer: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Berildi", t:"Berildi", c:"status-green" },
+    { v:"O'ylab ko'rmoqda", t:"O'ylab ko'rmoqda", c:"status-yellow" },
+    { v:"Rad etdi", t:"Rad etdi", c:"status-red" },
+    { v:"Rozi bo'ldi", t:"Rozi bo'ldi", c:"status-green" },
+  ],
+  commercial: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Berildi", t:"Berildi", c:"status-green" },
+    { v:"O'ylab ko'rmoqda", t:"O'ylab ko'rmoqda", c:"status-yellow" },
+    { v:"Rad etildi", t:"Rad etildi", c:"status-red" },
+  ],
+  contract: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Tuzildi", t:"Tuzildi", c:"status-green" },
+    { v:"Tuzilmadi", t:"Tuzilmadi", c:"status-red" },
+    { v:"O'ylab ko'rmoqda", t:"O'ylab ko'rmoqda", c:"status-yellow" },
+  ],
+  final: [
+    { v:"", t:"— tanlang —", c:"" },
+    { v:"Yakunlandi", t:"Yakunlandi", c:"status-green" },
+    { v:"Yakunlanmadi", t:"Yakunlanmadi", c:"status-red" },
+    { v:"Jarayonda", t:"Jarayonda", c:"status-yellow" },
+  ]
+};
+
+function statusClass(groupKey, value){
+  const item = STATUS[groupKey].find(x => x.v === value);
+  return item ? item.c : "";
+}
+
+function statusSelectHTML(groupKey, value, schoolName){
+  const opts = STATUS[groupKey].map(o =>
+    `<option value="${String(o.v).replace(/"/g,'&quot;')}">${o.t}</option>`
+  ).join("");
+
+  return `
+    <div class="status-wrap ${statusClass(groupKey, value)}">
+      <select class="status-select"
+              data-group="${groupKey}"
+              data-school="${encodeURIComponent(schoolName)}">
+        ${opts}
+      </select>
+    </div>
+  `;
+}
+
+function applyStatusColor(sel){
+  const wrap = sel.closest(".status-wrap");
+  if(!wrap) return;
+  wrap.classList.remove("status-green","status-red","status-yellow");
+  const cls = statusClass(sel.dataset.group, sel.value);
+  if(cls) wrap.classList.add(cls);
+}
+
+/* =========================
+   RENDER / LOAD
 ========================= */
 function loadFromLocal(){
-    const schools = getData();
-    tbody.innerHTML = "";
+  const schools = getData();
+  tbody.innerHTML = "";
 
-    schools.forEach(s=>{
-        const tr=document.createElement("tr");
+  schools.forEach(s=>{
+    s.offer_status = s.offer_status || "";
+    s.commercial_status = s.commercial_status || "";
+    s.contract_status = s.contract_status || "";
+    s.final_status = s.final_status || "";
+    s.meeting_date = s.meeting_date || "";
+    s.comment = s.comment || "";
+    s.work_started = s.work_started || "";
+    s.school = s.school || s.name || ""; // eski key bo‘lsa
 
-        tr.innerHTML=`
-<td class="school">${s.school || ""}</td>
+    const tr = document.createElement("tr");
 
-<td class="status-box"></td>
+    // MUHIM: bu yerda 9 ta <td> bor (thead bilan mos!)
+    tr.innerHTML = `
+      <td class="school">${s.school}</td>
 
-<td><input type="date" value="${s.meeting_date||""}" disabled></td>
+      <td class="status-box">
+        ${statusSelectHTML("offer", s.offer_status, s.school)}
+      </td>
 
-<td class="status-box"></td>
+      <td><input type="date" value="${s.meeting_date}" disabled></td>
 
-<td class="status-box"></td>
+      <td class="status-box">
+        ${statusSelectHTML("commercial", s.commercial_status, s.school)}
+      </td>
 
-<td>${s.work_started||""}</td>
+      <td class="status-box">
+        ${statusSelectHTML("contract", s.contract_status, s.school)}
+      </td>
 
-<td class="status-box"></td>
+      <td>${s.work_started}</td>
 
-<td><input class="comment" value="${s.comment||""}" placeholder="Koment..." disabled></td>
+      <td class="status-box">
+        ${statusSelectHTML("final", s.final_status, s.school)}
+      </td>
 
-<td>
-  <button class="btn" data-edit="0" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
-</td>
-`;
-        tbody.appendChild(tr);
+      <td><input class="comment" value="${s.comment}" placeholder="Koment..." disabled></td>
+
+      <td>
+        <button class="btn" data-edit="0" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+
+    tr.querySelectorAll("select.status-select").forEach(sel=>{
+      const g = sel.dataset.group;
+      const val =
+        g === "offer" ? s.offer_status :
+        g === "commercial" ? s.commercial_status :
+        g === "contract" ? s.contract_status :
+        s.final_status;
+
+      sel.value = val || "";
+      sel.disabled = true;
+      applyStatusColor(sel);
+
+      sel.addEventListener("change", ()=>{
+        const schoolName = decodeURIComponent(sel.dataset.school || "");
+        const list = getData();
+        const idx = list.findIndex(x => (x.school||x.name||"") === schoolName);
+        if(idx === -1) return;
+
+        list[idx].school = list[idx].school || list[idx].name || schoolName;
+
+        if(g === "offer") list[idx].offer_status = sel.value;
+        if(g === "commercial") list[idx].commercial_status = sel.value;
+        if(g === "contract") list[idx].contract_status = sel.value;
+        if(g === "final") list[idx].final_status = sel.value;
+
+        setData(list);
+        applyStatusColor(sel);
+      });
     });
+  });
 }
 
 /* =========================
-   QATOR QULFLASH
+   LOCK / EDIT SAVE
 ========================= */
 function lockRow(tr, lock=true){
-    tr.querySelectorAll("input").forEach(i=>{
-        i.disabled = lock;
-    });
+  tr.querySelectorAll("input, select").forEach(el=>{
+    el.disabled = lock;
+  });
 }
 
-/* =========================
-   MAKTAB QO‘SHISH
-========================= */
-function addSchool(){
-    const name = addName.value.trim();
-    const work = addWork.value.trim();
-    if(!name) return alert("Maktab nomini kiriting");
-
-    const schools = getData();
-
-    if(schools.some(x => (x.school||"").toLowerCase() === name.toLowerCase())){
-        alert("Bu maktab allaqachon mavjud!");
-        return;
-    }
-
-    schools.push({
-        school: name,
-        work_started: work,
-        meeting_date: "",
-        comment: ""
-    });
-
-    setData(schools);
-    loadFromLocal();
-
-    addModal.style.display="none";
-    addName.value="";
-    addWork.value="";
-}
-
-/* =========================
-   O‘CHIRISH
-========================= */
-function deleteSchool(){
-    const name = deleteName.value.trim();
-    if(!name) return alert("Maktab nomini kiriting");
-
-    let schools = getData();
-    schools = schools.filter(x => (x.school||"").toLowerCase() !== name.toLowerCase());
-
-    setData(schools);
-    loadFromLocal();
-
-    deleteModal.style.display="none";
-    deleteName.value="";
-}
-
-/* =========================
-   TAHRIRLASH + SAQLASH
-========================= */
 function toggleEdit(btn){
-    const tr = btn.closest("tr");
-    const isEditing = btn.dataset.edit === "1";
+  const tr = btn.closest("tr");
+  const editing = btn.dataset.edit === "1";
 
-    if(isEditing){
-        const schoolName = tr.querySelector(".school").textContent.trim();
-        const dateVal = tr.querySelector('input[type="date"]').value || "";
-        const commentVal = tr.querySelector(".comment").value || "";
+  if(editing){
+    const schoolName = tr.querySelector(".school").textContent.trim();
+    const dateVal = tr.querySelector('input[type="date"]').value || "";
+    const commentVal = tr.querySelector(".comment").value || "";
 
-        const schools = getData();
-        const idx = schools.findIndex(x => (x.school||"") === schoolName);
-
-        if(idx !== -1){
-            schools[idx].meeting_date = dateVal;
-            schools[idx].comment = commentVal;
-            setData(schools);
-        }
+    const list = getData();
+    const idx = list.findIndex(x => (x.school||x.name||"") === schoolName);
+    if(idx !== -1){
+      list[idx].school = list[idx].school || list[idx].name || schoolName;
+      list[idx].meeting_date = dateVal;
+      list[idx].comment = commentVal;
+      setData(list);
     }
+  }
 
-    lockRow(tr, isEditing);
-    btn.dataset.edit = isEditing ? "0" : "1";
-    btn.textContent = isEditing ? "✏️ Tahrirlash" : "💾 Saqlash";
+  lockRow(tr, editing);
+  btn.dataset.edit = editing ? "0" : "1";
+  btn.textContent = editing ? "✏️ Tahrirlash" : "💾 Saqlash";
 }
 
 /* =========================
-   MODAL FUNKSIYALAR
+   ADD / DELETE + MODAL
 ========================= */
 function openAdd(){
-    addModal.style.display="flex";
+  document.getElementById("addModal").style.display = "flex";
 }
 function openDelete(){
-    deleteModal.style.display="flex";
+  document.getElementById("deleteModal").style.display = "flex";
 }
 
-addModal.addEventListener("click", e=>{
-    if(e.target === addModal) addModal.style.display="none";
+document.getElementById("addModal")?.addEventListener("click", (e)=>{
+  if(e.target.id === "addModal") e.target.style.display="none";
 });
-deleteModal.addEventListener("click", e=>{
-    if(e.target === deleteModal) deleteModal.style.display="none";
+document.getElementById("deleteModal")?.addEventListener("click", (e)=>{
+  if(e.target.id === "deleteModal") e.target.style.display="none";
 });
 
+function addSchool(){
+  const nameEl = document.getElementById("addName");
+  const workEl = document.getElementById("addWork");
+  const school = (nameEl?.value || "").trim();
+  const work_started = (workEl?.value || "").trim();
+
+  if(!school) return alert("Maktab nomini kiriting");
+
+  const list = getData();
+  if(list.some(x => ((x.school||x.name||"").toLowerCase() === school.toLowerCase()))){
+    alert("Bu maktab allaqachon mavjud!");
+    return;
+  }
+
+  list.push({
+    school,
+    work_started,
+    meeting_date:"",
+    comment:"",
+    offer_status:"",
+    commercial_status:"",
+    contract_status:"",
+    final_status:""
+  });
+
+  setData(list);
+  loadFromLocal();
+
+  document.getElementById("addModal").style.display="none";
+  if(nameEl) nameEl.value="";
+  if(workEl) workEl.value="";
+}
+
+function deleteSchool(){
+  const nameEl = document.getElementById("deleteName");
+  const school = (nameEl?.value || "").trim();
+  if(!school) return alert("Maktab nomini kiriting");
+
+  let list = getData();
+  list = list.filter(x => ((x.school||x.name||"").toLowerCase() !== school.toLowerCase()));
+
+  setData(list);
+  loadFromLocal();
+
+  document.getElementById("deleteModal").style.display="none";
+  if(nameEl) nameEl.value="";
+}
+
 /* =========================
-   FILTR
+   FILTER
 ========================= */
 function filterTable(){
-    const q = (filterInput.value || "").toLowerCase().trim();
-    tbody.querySelectorAll("tr").forEach(tr=>{
-        const name = tr.querySelector(".school")?.textContent.toLowerCase() || "";
-        tr.style.display = name.includes(q) ? "" : "none";
-    });
+  const q = (document.getElementById("filterInput")?.value || "").toLowerCase().trim();
+  tbody.querySelectorAll("tr").forEach(tr=>{
+    const name = tr.querySelector(".school")?.textContent.toLowerCase() || "";
+    tr.style.display = name.includes(q) ? "" : "none";
+  });
 }
 
 /* =========================
-   SAHIFA YUKLANGANDA
+   START
 ========================= */
-window.onload = ()=>{
-    loadFromLocal();
-};
+window.onload = loadFromLocal;
 </script>
 
 </body>
 </html>
+
 
