@@ -99,13 +99,11 @@ let staff = [];
    GOOGLE SHEETGA YUBORISH
 ========================= */
 function sendToSheet(data){
-    fetch(SCRIPT_URL,{
-        method:"POST",
-        body:JSON.stringify(data),
-        headers:{
-            "Content-Type":"text/plain;charset=utf-8"   // 🔥 CORS FIX
-        }
-    })
+    const params = new URLSearchParams({
+        data: JSON.stringify(data)
+    });
+
+    fetch(SCRIPT_URL + "?" + params.toString())
     .then(res=>res.text())
     .then(()=>loadFromSheet())
     .catch(err=>console.log("Sheet error:",err));
@@ -252,6 +250,7 @@ loadFromSheet();
 
 </body>
 </html>
+
 
 
 
