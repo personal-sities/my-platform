@@ -171,7 +171,7 @@ th{color:var(--blue);background:#f9fbff}
 </div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxQEvzD2ZUS4pgJ19asiFWU5vv9v7QwaULzHPVTnt2waLCfnRuyrkfhgbMFAkpTkkSX/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzG_ecM8gz8bSBWRQ7SwanpIHpn60NfmTkuunpJCV70zpLItuDT1ykvvQgIFTcPNpZJ/exec";
 const tbody = document.querySelector("tbody");
 
 /* =========================
@@ -184,18 +184,25 @@ async function apiList(){
   return j.data || [];
 }
 
-async function apiSaveAll(list){
+async function apiUpsertOne(item){
   const res = await fetch(SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
-    body: JSON.stringify({ action:"saveAll", data:list })
+    body: JSON.stringify({ action:"upsertOne", item })
   });
   const j = await res.json();
-  if(!j.ok) throw new Error(j.error || "API saveAll error");
+  if(!j.ok) throw new Error(j.error || "API upsertOne error");
 }
 
-async function getData(){ return await apiList(); }
-async function setData(list){ await apiSaveAll(list); }
+async function apiDeleteByName(university){
+  const res = await fetch(SCRIPT_URL, {
+    method: "POST",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: JSON.stringify({ action:"deleteByName", university })
+  });
+  const j = await res.json();
+  if(!j.ok) throw new Error(j.error || "API deleteByName error");
+}
 
 /* =========================
    STATUS OPTIONS + COLORS
@@ -233,7 +240,7 @@ function statusClass(groupKey, value){
   return item ? item.c : "";
 }
 
-function statusSelectHTML(groupKey, value, schoolName){
+function statusSelectHTML(groupKey, value, univerName){
   const opts = STATUS[groupKey].map(o =>
     `<option value="${String(o.v).replace(/"/g,'&quot;')}">${o.t}</option>`
   ).join("");
@@ -242,7 +249,7 @@ function statusSelectHTML(groupKey, value, schoolName){
     <div class="status-wrap ${statusClass(groupKey, value)}">
       <select class="status-select"
               data-group="${groupKey}"
-              data-school="${encodeURIComponent(schoolName)}">
+              data-univer="${encodeURIComponent(univerName)}">
         ${opts}
       </select>
     </div>
@@ -258,56 +265,82 @@ function applyStatusColor(sel){
 }
 
 /* =========================
+   HELPERS
+========================= */
+function buildItemFromRow(tr){
+  const university = tr.querySelector(".univer")?.textContent.trim() || "";
+
+  const dateVal = tr.querySelector('input[type="date"]')?.value || "";
+  const commentVal = tr.querySelector(".comment")?.value || "";
+
+  const offerSel = tr.querySelector('select[data-group="offer"]');
+  const commSel  = tr.querySelector('select[data-group="commercial"]');
+  const contSel  = tr.querySelector('select[data-group="contract"]');
+  const finalSel = tr.querySelector('select[data-group="final"]');
+
+  return {
+    university,
+    work_started: tr.children[5]?.textContent.trim() || "",
+    meeting_date: dateVal,
+    comment: commentVal,
+    offer_status: offerSel?.value || "",
+    commercial_status: commSel?.value || "",
+    contract_status: contSel?.value || "",
+    final_status: finalSel?.value || "",
+  };
+}
+
+/* =========================
    RENDER / LOAD
 ========================= */
 async function loadFromLocal(){
-  let schools = [];
+  let universities = [];
   try{
-    schools = await getData();
+    universities = await apiList();
   }catch(err){
     console.log(err);
     alert("Ma'lumotni yuklashda xatolik. Apps Script Deploy (Anyone) ekanini tekshiring!");
-    schools = [];
+    universities = [];
   }
 
   tbody.innerHTML = "";
 
-  schools.forEach(s=>{
-    s.offer_status = s.offer_status || "";
-    s.commercial_status = s.commercial_status || "";
-    s.contract_status = s.contract_status || "";
-    s.final_status = s.final_status || "";
-    s.meeting_date = s.meeting_date || "";
-    s.comment = s.comment || "";
-    s.work_started = s.work_started || "";
-    s.university = s.university || s.name || ""; // sheetda ustun nomi university bo‘lgani uchun shu qoladi
+  universities.forEach(u=>{
+    u.offer_status = u.offer_status || "";
+    u.commercial_status = u.commercial_status || "";
+    u.contract_status = u.contract_status || "";
+    u.final_status = u.final_status || "";
+    u.meeting_date = u.meeting_date || "";
+    u.comment = u.comment || "";
+    u.work_started = u.work_started || "";
+    u.university = u.university || u.name || "";
 
     const tr = document.createElement("tr");
 
     tr.innerHTML = `
-      <td class="univer">${s.university}</td>
+      <td class="univer">${u.university}</td>
 
       <td class="status-box">
-        ${statusSelectHTML("offer", s.offer_status, s.university)}
+        ${statusSelectHTML("offer", u.offer_status, u.university)}
       </td>
 
-      <td><input type="date" value="${s.meeting_date}" disabled></td>
+      <td><input type="date" value="${u.meeting_date}" disabled></td>
 
       <td class="status-box">
-        ${statusSelectHTML("commercial", s.commercial_status, s.university)}
+        ${statusSelectHTML("commercial", u.commercial_status, u.university)}
       </td>
 
       <td class="status-box">
-        ${statusSelectHTML("contract", s.contract_status, s.university)}
+        ${statusSelectHTML("contract", u.contract_status, u.university)}
       </td>
 
-      <td>${s.work_started}</td>
+      <td>${u.work_started}</td>
 
       <td class="status-box">
-        ${statusSelectHTML("final", s.final_status, s.university)}
+        ${statusSelectHTML("final", u.final_status, u.university)}
       </td>
 
-      <td><input class="comment" value="${s.comment}" placeholder="Koment..." disabled></td>
+      <td><input class="comment" value="${u.comment}" placeholder="Koment..." disabled></td>
 
       <td>
         <button class="btn" data-edit="0" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
@@ -315,34 +348,29 @@ async function loadFromLocal(){
     `;
     tbody.appendChild(tr);
 
+    // select qiymatlarini set qilish + disable
     tr.querySelectorAll("select.status-select").forEach(sel=>{
       const g = sel.dataset.group;
-
       const val =
-        g === "offer" ? s.offer_status :
-        g === "commercial" ? s.commercial_status :
-        g === "contract" ? s.contract_status :
-        s.final_status;
+        g === "offer" ? u.offer_status :
+        g === "commercial" ? u.commercial_status :
+        g === "contract" ? u.contract_status :
+        u.final_status;
 
       sel.value = val || "";
       sel.disabled = true;
       applyStatusColor(sel);
 
+      // ✅ status o'zgarsa: faqat shu qatorni upsert qilamiz
       sel.addEventListener("change", async ()=>{
-        const schoolName = decodeURIComponent(sel.dataset.school || "");
-        const list = await getData();
-        const idx = list.findIndex(x => (x.university||x.name||"") === schoolName);
-        if(idx === -1) return;
-
-        list[idx].university = list[idx].university || list[idx].name || schoolName;
-
-        if(g === "offer") list[idx].offer_status = sel.value;
-        if(g === "commercial") list[idx].commercial_status = sel.value;
-        if(g === "contract") list[idx].contract_status = sel.value;
-        if(g === "final") list[idx].final_status = sel.value;
-
-        await setData(list);
-        applyStatusColor(sel);
+        try{
+          const item = buildItemFromRow(tr);
+          await apiUpsertOne(item);
+          applyStatusColor(sel);
+        }catch(err){
+          console.log(err);
+          alert("Saqlashda xatolik (upsert). Deploy/permissions ni tekshiring.");
+        }
       });
     });
   });
@@ -361,18 +389,15 @@ async function toggleEdit(btn){
   const tr = btn.closest("tr");
   const editing = btn.dataset.edit === "1";
 
+  // edit rejimidan chiqayotgan bo'lsa — saqlaymiz
   if(editing){
-    const schoolName = tr.querySelector(".univer").textContent.trim();
-    const dateVal = tr.querySelector('input[type="date"]').value || "";
-    const commentVal = tr.querySelector(".comment").value || "";
-
-    const list = await getData();
-    const idx = list.findIndex(x => (x.university||x.name||"") === schoolName);
-    if(idx !== -1){
-      list[idx].university = list[idx].university || list[idx].name || schoolName;
-      list[idx].meeting_date = dateVal;
-      list[idx].comment = commentVal;
-      await setData(list);
+    try{
+      const item = buildItemFromRow(tr);
+      await apiUpsertOne(item);
+    }catch(err){
+      console.log(err);
+      alert("Saqlashda xatolik (edit). Deploy/permissions ni tekshiring.");
+      return; // xato bo'lsa editdan chiqarmaymiz
     }
   }
 
@@ -401,50 +426,56 @@ document.getElementById("deleteModal")?.addEventListener("click", (e)=>{
 async function addUniver(){
   const nameEl = document.getElementById("addName");
   const workEl = document.getElementById("addWork");
-  const university = (nameEl?.value || "").trim();     // ustun nomi university bo‘lgani uchun shu qoladi
+  const university = (nameEl?.value || "").trim();
   const work_started = (workEl?.value || "").trim();
 
-  if(!university) return alert("Nomini kiriting");
+  if(!university) return alert("Maktab nomini kiriting");
 
-  const list = await getData();
-
+  // dublikatni tekshirish
+  const list = await apiList();
   if(list.some(x => ((x.university||x.name||"").toLowerCase() === university.toLowerCase()))){
-    alert("Bu allaqachon mavjud!");
+    alert("Bu maktab allaqachon mavjud!");
     return;
   }
 
-  list.push({
-    university,
-    work_started,
-    meeting_date:"",
-    comment:"",
-    offer_status:"",
-    commercial_status:"",
-    contract_status:"",
-    final_status:""
-  });
+  try{
+    await apiUpsertOne({
+      university,
+      work_started,
+      meeting_date:"",
+      comment:"",
+      offer_status:"",
+      commercial_status:"",
+      contract_status:"",
+      final_status:""
+    });
 
-  await setData(list);
-  await loadFromLocal();
+    await loadFromLocal();
 
-  document.getElementById("addModal").style.display="none";
-  if(nameEl) nameEl.value="";
-  if(workEl) workEl.value="";
+    document.getElementById("addModal").style.display="none";
+    if(nameEl) nameEl.value="";
+    if(workEl) workEl.value="";
+  }catch(err){
+    console.log(err);
+    alert("Qo‘shishda xatolik (upsert).");
+  }
 }
 
 async function deleteUniver(){
   const nameEl = document.getElementById("deleteName");
   const university = (nameEl?.value || "").trim();
-  if(!university) return alert("Nomini kiriting");
+  if(!university) return alert("Maktab nomini kiriting");
 
-  let list = await getData();
-  list = list.filter(x => ((x.university||x.name||"").toLowerCase() !== university.toLowerCase()));
+  try{
+    await apiDeleteByName(university);
+    await loadFromLocal();
 
-  await setData(list);
-  await loadFromLocal();
-
-  document.getElementById("deleteModal").style.display="none";
-  if(nameEl) nameEl.value="";
+    document.getElementById("deleteModal").style.display="none";
+    if(nameEl) nameEl.value="";
+  }catch(err){
+    console.log(err);
+    alert("O‘chirishda xatolik (delete).");
+  }
 }
 
 /* =========================
@@ -465,6 +496,7 @@ window.onload = loadFromLocal;
 </script>
 </body>
 </html>
+
 
 
 
