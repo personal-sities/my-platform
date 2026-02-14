@@ -176,6 +176,8 @@ const tbody = document.querySelector("tbody");
 
 /* =========================
    API (Google Sheets)
+   Backend hozircha "university" kalitini kutyapti.
+   Biz UI tarafda school ishlatamiz, lekin API ga university qilib yuboramiz.
 ========================= */
 async function apiList(){
   const res = await fetch(`${SCRIPT_URL}?action=list`, { cache:"no-store" });
@@ -240,16 +242,14 @@ function statusClass(groupKey, value){
   return item ? item.c : "";
 }
 
-function statusSelectHTML(groupKey, value, univerName){
+function statusSelectHTML(groupKey, value){
   const opts = STATUS[groupKey].map(o =>
     `<option value="${String(o.v).replace(/"/g,'&quot;')}">${o.t}</option>`
   ).join("");
 
   return `
     <div class="status-wrap ${statusClass(groupKey, value)}">
-      <select class="status-select"
-              data-group="${groupKey}"
-              data-univer="${encodeURIComponent(univerName)}">
+      <select class="status-select" data-group="${groupKey}">
         ${opts}
       </select>
     </div>
@@ -266,9 +266,10 @@ function applyStatusColor(sel){
 
 /* =========================
    HELPERS
+   UI da "school" ko'rsatamiz, API ga "university" qilib yuboramiz.
 ========================= */
 function buildItemFromRow(tr){
-  const university = tr.querySelector(".univer")?.textContent.trim() || "";
+  const school = tr.querySelector(".school-name")?.textContent.trim() || "";
 
   const dateVal = tr.querySelector('input[type="date"]')?.value || "";
   const commentVal = tr.querySelector(".comment")?.value || "";
@@ -279,7 +280,9 @@ function buildItemFromRow(tr){
   const finalSel = tr.querySelector('select[data-group="final"]');
 
   return {
-    university,
+    // ✅ backend kaliti:
+    university: school,
+
     work_started: tr.children[5]?.textContent.trim() || "",
     meeting_date: dateVal,
     comment: commentVal,
@@ -293,54 +296,55 @@ function buildItemFromRow(tr){
 /* =========================
    RENDER / LOAD
 ========================= */
-async function loadFromLocal(){
-  let universities = [];
+async function loadFromSheet(){
+  let rows = [];
   try{
-    universities = await apiList();
+    rows = await apiList();
   }catch(err){
     console.log(err);
     alert("Ma'lumotni yuklashda xatolik. Apps Script Deploy (Anyone) ekanini tekshiring!");
-    universities = [];
+    rows = [];
   }
 
   tbody.innerHTML = "";
 
-  universities.forEach(u=>{
-    u.offer_status = u.offer_status || "";
-    u.commercial_status = u.commercial_status || "";
-    u.contract_status = u.contract_status || "";
-    u.final_status = u.final_status || "";
-    u.meeting_date = u.meeting_date || "";
-    u.comment = u.comment || "";
-    u.work_started = u.work_started || "";
-    u.university = u.university || u.name || "";
+  rows.forEach(r=>{
+    // backenddan kelgan nomlarni normalize qilamiz
+    const school = (r.university || r.school || r.name || "").trim();
+
+    const offer_status = r.offer_status || "";
+    const commercial_status = r.commercial_status || "";
+    const contract_status = r.contract_status || "";
+    const final_status = r.final_status || "";
+    const meeting_date = r.meeting_date || "";
+    const comment = r.comment || "";
+    const work_started = r.work_started || "";
 
     const tr = document.createElement("tr");
-
     tr.innerHTML = `
-      <td class="univer">${u.university}</td>
+      <td class="school school-name">${school}</td>
 
       <td class="status-box">
-        ${statusSelectHTML("offer", u.offer_status, u.university)}
+        ${statusSelectHTML("offer", offer_status)}
       </td>
 
-      <td><input type="date" value="${u.meeting_date}" disabled></td>
+      <td><input type="date" value="${meeting_date}" disabled></td>
 
       <td class="status-box">
-        ${statusSelectHTML("commercial", u.commercial_status, u.university)}
+        ${statusSelectHTML("commercial", commercial_status)}
       </td>
 
       <td class="status-box">
-        ${statusSelectHTML("contract", u.contract_status, u.university)}
+        ${statusSelectHTML("contract", contract_status)}
       </td>
 
-      <td>${u.work_started}</td>
+      <td>${work_started}</td>
 
       <td class="status-box">
-        ${statusSelectHTML("final", u.final_status, u.university)}
+        ${statusSelectHTML("final", final_status)}
       </td>
 
-      <td><input class="comment" value="${u.comment}" placeholder="Koment..." disabled></td>
+      <td><input class="comment" value="${comment}" placeholder="Koment..." disabled></td>
 
       <td>
         <button class="btn" data-edit="0" onclick="toggleEdit(this)">✏️ Tahrirlash</button>
@@ -352,16 +356,16 @@ async function loadFromLocal(){
     tr.querySelectorAll("select.status-select").forEach(sel=>{
       const g = sel.dataset.group;
       const val =
-        g === "offer" ? u.offer_status :
-        g === "commercial" ? u.commercial_status :
-        g === "contract" ? u.contract_status :
-        u.final_status;
+        g === "offer" ? offer_status :
+        g === "commercial" ? commercial_status :
+        g === "contract" ? contract_status :
+        final_status;
 
       sel.value = val || "";
       sel.disabled = true;
       applyStatusColor(sel);
 
-      // ✅ status o'zgarsa: faqat shu qatorni upsert qilamiz
+      // status o'zgarsa — faqat shu qatorni saqlaymiz
       sel.addEventListener("change", async ()=>{
         try{
           const item = buildItemFromRow(tr);
@@ -380,16 +384,13 @@ async function loadFromLocal(){
    LOCK / EDIT SAVE
 ========================= */
 function lockRow(tr, lock=true){
-  tr.querySelectorAll("input, select").forEach(el=>{
-    el.disabled = lock;
-  });
+  tr.querySelectorAll("input, select").forEach(el=> el.disabled = lock);
 }
 
 async function toggleEdit(btn){
   const tr = btn.closest("tr");
   const editing = btn.dataset.edit === "1";
 
-  // edit rejimidan chiqayotgan bo'lsa — saqlaymiz
   if(editing){
     try{
       const item = buildItemFromRow(tr);
@@ -397,7 +398,7 @@ async function toggleEdit(btn){
     }catch(err){
       console.log(err);
       alert("Saqlashda xatolik (edit). Deploy/permissions ni tekshiring.");
-      return; // xato bo'lsa editdan chiqarmaymiz
+      return;
     }
   }
 
@@ -423,24 +424,24 @@ document.getElementById("deleteModal")?.addEventListener("click", (e)=>{
   if(e.target.id === "deleteModal") e.target.style.display="none";
 });
 
-async function addUniver(){
+// ✅ HTML onclick="addSchool()" uchun
+async function addSchool(){
   const nameEl = document.getElementById("addName");
   const workEl = document.getElementById("addWork");
-  const university = (nameEl?.value || "").trim();
+  const school = (nameEl?.value || "").trim();
   const work_started = (workEl?.value || "").trim();
 
-  if(!university) return alert("Maktab nomini kiriting");
+  if(!school) return alert("Maktab nomini kiriting");
 
-  // dublikatni tekshirish
   const list = await apiList();
-  if(list.some(x => ((x.university||x.name||"").toLowerCase() === university.toLowerCase()))){
+  if(list.some(x => ((x.university||x.school||x.name||"").toLowerCase() === school.toLowerCase()))){
     alert("Bu maktab allaqachon mavjud!");
     return;
   }
 
   try{
     await apiUpsertOne({
-      university,
+      university: school, // ✅ backend kaliti
       work_started,
       meeting_date:"",
       comment:"",
@@ -450,7 +451,7 @@ async function addUniver(){
       final_status:""
     });
 
-    await loadFromLocal();
+    await loadFromSheet();
 
     document.getElementById("addModal").style.display="none";
     if(nameEl) nameEl.value="";
@@ -461,14 +462,15 @@ async function addUniver(){
   }
 }
 
-async function deleteUniver(){
+// ✅ HTML onclick="deleteSchool()" uchun
+async function deleteSchool(){
   const nameEl = document.getElementById("deleteName");
-  const university = (nameEl?.value || "").trim();
-  if(!university) return alert("Maktab nomini kiriting");
+  const school = (nameEl?.value || "").trim();
+  if(!school) return alert("Maktab nomini kiriting");
 
   try{
-    await apiDeleteByName(university);
-    await loadFromLocal();
+    await apiDeleteByName(school); // backend deleteByName "university" deb kutadi
+    await loadFromSheet();
 
     document.getElementById("deleteModal").style.display="none";
     if(nameEl) nameEl.value="";
@@ -484,7 +486,7 @@ async function deleteUniver(){
 function filterTable(){
   const q = (document.getElementById("filterInput")?.value || "").toLowerCase().trim();
   tbody.querySelectorAll("tr").forEach(tr=>{
-    const name = tr.querySelector(".univer")?.textContent.toLowerCase() || "";
+    const name = tr.querySelector(".school-name")?.textContent.toLowerCase() || "";
     tr.style.display = name.includes(q) ? "" : "none";
   });
 }
@@ -492,10 +494,11 @@ function filterTable(){
 /* =========================
    START
 ========================= */
-window.onload = loadFromLocal;
+window.onload = loadFromSheet;
 </script>
 </body>
 </html>
+
 
 
 
